@@ -10,7 +10,6 @@ using std::vector;
 #include <map>
 using std::map;
 
-#include "Platform.h"
 #include "Observer.h"
 
 
@@ -50,6 +49,8 @@ namespace jetstream{
 	        void runElasticsearchWriter();
 
 
+	     	bool run;
+
 	    private:
 	    	Observer observer;
 
@@ -59,6 +60,8 @@ namespace jetstream{
 
 	     	vector<string> additional_arguments;
 	     	map<string,string> environment_variables;
+
+
      	
 
 	};

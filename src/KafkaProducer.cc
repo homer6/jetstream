@@ -60,7 +60,7 @@
 
 
 
-namespace logport{
+namespace jetstream{
 
 
     /**
@@ -82,35 +82,6 @@ namespace logport{
 
             observer->addLogEntry( "Message delivery failed: " + string(rd_kafka_err2str(rkmessage->err)) );
 
-            if( undelivered_log_fd_static != -1 ){
-
-                int result_bytes = write( undelivered_log_fd_static, rkmessage->payload, rkmessage->len );
-
-                if( result_bytes < 0 ){
-                    observer->addLogEntry( "Failed to write to undelivered_log. errno: " + logport::to_string<int>(errno) );
-                }else{
-                    if( (size_t)result_bytes != rkmessage->len ){
-                        observer->addLogEntry( "Write mismatch in undelivered_log. " + logport::to_string<size_t>(rkmessage->len) + " bytes expected but only " + logport::to_string<int>(result_bytes) + " written." );
-                    }
-                }
-
-                //append newline
-                    char newline_buffer[10];
-                    newline_buffer[0] = '\n';
-
-                    result_bytes = write( undelivered_log_fd_static, newline_buffer, 1 );
-                    if( result_bytes < 0 ){
-                        observer->addLogEntry( "Failed to write to undelivered_log newline. errno: " + logport::to_string<int>(errno) );
-                    }
-                
-
-            }else{
-
-
-                observer->addLogEntry( "Failed to record undelivered message." );
-
-            }
-
         }else{
 
             //message successfully delivered
@@ -125,8 +96,8 @@ namespace logport{
 
 
 
-    KafkaProducer::KafkaProducer( Observer& observer, const string &brokers_list, const string &topic, const string &undelivered_log )
-        :observer(observer), brokers_list(brokers_list), topic(topic), undelivered_log(undelivered_log), undelivered_log_open(false)
+    KafkaProducer::KafkaProducer( Observer& observer, const string &brokers_list, const string &topic )
+        :observer(observer), brokers_list(brokers_list), topic(topic)
     {
 
         /*
@@ -211,13 +182,7 @@ namespace logport{
         /* Destroy the producer instance */
         rd_kafka_destroy(this->rk);
 
-
-        if( this->undelivered_log_open ){
-            undelivered_log_fd_static = -1;
-            close( this->undelivered_log_fd );
-        }
-
-        this->observer.addLogEntry( "Kafka producer shutdown complete: " + this->undelivered_log );
+        this->observer.addLogEntry( "Kafka producer shutdown complete." );
 
     }
 
@@ -392,35 +357,6 @@ namespace logport{
     }
 
 
-
-    void KafkaProducer::openUndeliveredLog(){
-
-        //O_APPEND is not used for undelivered_log because of NFS usage
-        /*
-        O_APPEND may lead to corrupted files on NFS filesystems if
-        more than one process appends data to a file at once.  This is
-        because NFS does not support appending to a file, so the
-        client kernel has to simulate it, which can't be done without
-        a race condition.
-        */
-        
-        char error_string_buffer[1024];
-
-        this->undelivered_log_fd = open( undelivered_log.c_str(), O_WRONLY | O_CREAT | O_LARGEFILE | O_NOFOLLOW, S_IRUSR | S_IWUSR ); //mode 0400
-        if( this->undelivered_log_fd == -1 ){
-
-            rd_kafka_topic_destroy(this->rkt);
-            rd_kafka_destroy(this->rk);
-
-            snprintf(error_string_buffer, sizeof(error_string_buffer), "%d", errno);
-            throw std::runtime_error( "Failed to open undelivered log file for writing: errno " + string(error_string_buffer) );
-        }
-
-        undelivered_log_fd_static = this->undelivered_log_fd;
-
-        this->undelivered_log_open = true;
-
-    }
 
 
 }

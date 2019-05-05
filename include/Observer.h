@@ -1,5 +1,5 @@
-#ifndef LOGPORT_OBSERVER_H
-#define LOGPORT_OBSERVER_H
+#ifndef JETSTREAM_OBSERVER_H
+#define JETSTREAM_OBSERVER_H
 
 #include <string>
 using std::string;
@@ -7,7 +7,7 @@ using std::string;
 #include <fstream>
 
 
-namespace logport{
+namespace jetstream{
 
 
 	/*
@@ -32,12 +32,6 @@ namespace logport{
 	    	void addTelemetryEntry( const string& telemetry_entry );
 	    	void addLogEntry( const string& log_line );
 	    	
-	    protected:
-	    	std::ofstream metrics_file;
-	    	std::ofstream events_file;
-	    	std::ofstream traces_file;
-	    	std::ofstream telemetry_file;
-	     	std::ofstream log_file;
 	     	
 	};
 
@@ -47,4 +41,4 @@ namespace logport{
 
 
 
-#endif //LOGPORT_OBSERVER_H
+#endif //JETSTREAM_OBSERVER_H

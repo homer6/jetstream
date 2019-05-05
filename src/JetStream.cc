@@ -1,5 +1,4 @@
 #include "JetStream.h"
-#include "Watch.h"
 
 #include <iostream>
 #include <iomanip>
@@ -53,19 +52,20 @@ static void signal_handler_stop( int sig ){
 	
 }
 
-static void signal_handler_reload_config( int /*sig*/ ){
+/*
+static void signal_handler_reload_config( int sig ){
 
     jetstream_app_ptr->reload_required = true;
     jetstream::Observer observer;
 	observer.addLogEntry( "jetstream: SIGHUP received. Reloading configuration." );
 
-}
+}*/
 
 
 namespace jetstream{
 
 	JetStream::JetStream()
-		:current_version("0.1.0")
+		:run(true), current_version("0.1.0")
 	{
 
 
@@ -84,7 +84,7 @@ namespace jetstream{
 
         // Signal handler for clean shutdown 
         signal( SIGINT | SIGTERM, signal_handler_stop );
-        signal( SIGHUP, signal_handler_reload_config );
+        //signal( SIGHUP, signal_handler_reload_config );
 
 	}
 

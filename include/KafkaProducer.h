@@ -6,7 +6,7 @@ using std::string;
 
 #include <librdkafka/rdkafka.h>
 
-namespace logport{
+namespace jetstream{
 
     class Observer;
 
@@ -18,7 +18,7 @@ namespace logport{
     class KafkaProducer{
 
         public:
-            KafkaProducer( Observer& observer, const string &brokers_list, const string &topic, const string &undelivered_log );
+            KafkaProducer( Observer& observer, const string &brokers_list, const string &topic );
             ~KafkaProducer();
 
             void produce( const string& message ); //throws on failure
