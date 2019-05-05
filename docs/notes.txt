@@ -1,0 +1,116 @@
+
+https://www.elastic.co/guide/en/elasticsearch/reference/7.0/getting-started-create-index.html
+
+
+
+curl -X PUT "127.0.0.1:9200/customer?pretty"
+curl -X GET "127.0.0.1:9200/_cat/indices?v"
+
+
+curl -X PUT "127.0.0.1:9200/customer/_doc/1?pretty" -H 'Content-Type: application/json' -d'
+{
+  "name": "John Doe"
+}
+'
+
+
+
+
+curl -X GET "127.0.0.1:9200/customer/_doc/1?pretty"
+
+
+
+curl -X DELETE "127.0.0.1:9200/customer?pretty"
+curl -X GET "127.0.0.1:9200/_cat/indices?v"
+
+
+
+
+curl -X PUT "127.0.0.1:9200/customer"
+curl -X PUT "127.0.0.1:9200/customer/_doc/1" -H 'Content-Type: application/json' -d'
+{
+  "name": "John Doe"
+}
+'
+curl -X GET "127.0.0.1:9200/customer/_doc/1"
+curl -X DELETE "127.0.0.1:9200/customer"
+
+
+
+curl -X POST "127.0.0.1:9200/customer/_doc?pretty" -H 'Content-Type: application/json' -d'
+{
+  "name": "Jane Doe"
+}
+'
+
+
+
+
+
+POST http://path.to.your.cluster/myIndex/person/_bulk
+{ "index":{} }
+{ "name":"john doe","age":25 }
+{ "index":{} }
+{ "name":"mary smith","age":32 }
+
+
+
+
+https://www.elastic.co/guide/en/elasticsearch/reference/7.x/date_nanos.html
+
+curl -X PUT "127.0.0.1:9200/my_index?include_type_name=true" -H 'Content-Type: application/json' -d'
+{
+  "mappings": {
+    "_doc": {
+      "properties": {
+        "date": {
+          "type": "date_nanos" 
+        }
+      }
+    }
+  }
+}
+'
+
+
+
+curl -X PUT "127.0.0.1:9200/my_index/_doc/1" -H 'Content-Type: application/json' -d'
+{ "date": "2015-01-01" }
+'
+curl -X PUT "127.0.0.1:9200/my_index/_doc/2" -H 'Content-Type: application/json' -d'
+{ "date": "2015-01-01T12:10:30.123456789Z" }
+'
+curl -X PUT "127.0.0.1:9200/my_index/_doc/3" -H 'Content-Type: application/json' -d'
+{ "date": 1420070400.123123 }
+'
+curl -X GET "127.0.0.1:9200/my_index/_search" -H 'Content-Type: application/json' -d'
+{
+  "sort": { "date": "asc"} 
+}
+'
+
+
+
+curl -X GET "127.0.0.1:9200/my_index/_search" -H 'Content-Type: application/json' -d'
+{
+  "script_fields" : {
+    "my_field" : {
+      "script" : {
+        "lang" : "painless",
+        "source" : "doc[\u0027date\u0027].date.nanos" 
+      }
+    }
+  }
+}
+'
+curl -X GET "127.0.0.1:9200/my_index/_search" -H 'Content-Type: application/json' -d'
+{
+  "docvalue_fields" : [
+    {
+      "field" : "my_ip_field",
+      "format": "strict_date_time" 
+    }
+  ]
+}
+'
+

@@ -1,0 +1,40 @@
+cmake_minimum_required( VERSION "2.6.4" )
+
+project( jetstream CXX C )
+
+
+include_directories(
+    include
+    # /usr/local/include/librdkafka
+)
+
+set( JETSTREAM_SOURCES
+    src/Common.cc
+    src/Observer.cc
+    src/JetStream.cc
+    src/KafkaProducer.cc
+)
+
+set( JETSTREAM_LIBS
+    rdkafka
+    pthread
+    dl
+)
+
+
+set( JETSTREAM_COMPILE_OPTIONS
+    -Wall
+    -Wextra
+    -O3   
+    -std=c++17
+)
+
+add_executable( build/jetstream ${JETSTREAM_SOURCES} src/jetstream_main.cc )
+
+target_link_libraries( build/jetstream -Wl,-rpath=/usr/local/lib/logport:. ${JETSTREAM_LIBS} )
+
+set_target_properties( build/jetstream
+    PROPERTIES
+    COMPILE_OPTIONS  "${JETSTREAM_COMPILE_OPTIONS}"
+)
+
