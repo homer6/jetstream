@@ -5,10 +5,21 @@ Kafka swiss army knife.
 ```
 git clone https://github.com/homer6/jetstream.git
 cd jetstream
-docker build .
-
-docker run c5e18b890d26
+docker build --no-cache -t jetstream:latest .
 ```
+
+## Running with docker
+```
+docker run -d --env JETSTREAM_TOPIC=my_logs jetstream:latest elasticsearch 127.0.0.1:9200
+```
+
+
+## Running on prem
+```
+./build/jetstream elasticsearch -t my_logs 127.0.0.1:9200
+```
+
+
 
 
 ## Building
