@@ -9,10 +9,6 @@ ADD build/libgcc_s.so.1 /lib/x86_64-linux-gnu/libgcc_s.so.1
 ADD build/librt.so.1 /lib/x86_64-linux-gnu/librt.so.1
 
 # install logport
-RUN mkdir -p /usr/local/lib/logport/istall
-
-
-
 ADD build/logport /usr/local/lib/logport/install/logport
 ADD build/librdkafka.so.1 /usr/local/lib/logport/install/librdkafka.so.1
 WORKDIR /usr/local/lib/logport/install

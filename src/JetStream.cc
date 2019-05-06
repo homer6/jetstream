@@ -131,7 +131,7 @@ namespace jetstream{
 
 	void JetStream::printHelpElasticsearch(){
 
-		cerr << "Usage: jetstream elasticsearch [OPTION]...\n"
+		cerr << "Usage: jetstream elasticsearch [OPTION]... [TARGET_ELASTICSEARCH]\n"
 				"Write from a kafka topic to Elasticsearch.\n"
 				"\n"
 				"Mandatory arguments to long options are mandatory for short options too.\n"
@@ -313,7 +313,7 @@ namespace jetstream{
     			if( is_last_argument ){
 
     				//add kafka consumer and Elasticsearch writer here
-    				this->runElasticsearchWriter( this_brokers, this_consumer_group, this_topic, this_product_code, this_hostname );
+    				this->runElasticsearchWriter( this_brokers, this_consumer_group, this_topic, this_product_code, this_hostname, current_argument );
     				return 0;
 
     			}
@@ -438,7 +438,7 @@ namespace jetstream{
 
 
 
-	void JetStream::runElasticsearchWriter( const string& brokers, const string& consumer_group, const string& topic, const string& product_code, const string& hostname ){
+	void JetStream::runElasticsearchWriter( const string& brokers, const string& consumer_group, const string& topic, const string& product_code, const string& hostname, const string& target_elasticsearch ){
 
 		//setup kafka consumer
 
@@ -507,7 +507,13 @@ namespace jetstream{
 			            try{
 			            	json_object = json::parse( payload );
 			        		try{
-			        			//this->apply( json_object );
+			        			
+			        			if( json_object.count("shipped_at") ){
+			        				cout << "json logport payload: " << json_object.dump() << " " << target_elasticsearch << endl;
+			        			}else{
+			        				cout << payload << " " << target_elasticsearch << endl;
+			        			}
+
 			                }catch( const std::exception& e ){
 			                	cerr << "JetStream: failed to apply object: " + string(e.what()) << endl;
 			                }

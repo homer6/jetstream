@@ -47,7 +47,7 @@ namespace jetstream{
 	        string getDefaultHostname();
 
 
-	        void runElasticsearchWriter( const string& brokers, const string& consumer_group, const string& topic, const string& product_code, const string& hostname );
+	        void runElasticsearchWriter( const string& brokers, const string& consumer_group, const string& topic, const string& product_code, const string& hostname, const string& target_elasticsearch );
 
 
 	     	bool run;
