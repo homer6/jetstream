@@ -29,6 +29,11 @@ using std::endl;
 #include <errno.h>
 #include <signal.h>
 
+#include "json.hpp"
+using json = nlohmann::json;
+
+#include <cppkafka/cppkafka.h>
+
 
 #include <map>
 using std::map;
@@ -130,14 +135,16 @@ namespace jetstream{
 				"Write from a kafka topic to Elasticsearch.\n"
 				"\n"
 				"Mandatory arguments to long options are mandatory for short options too.\n"
-				"  -b, --brokers [BROKERS]             a csv list of kafka brokers\n"
-				"                                      (optional; defaults to setting: default.brokers)\n"
-				"  -t, --topic [TOPIC]                 a destination kafka topic\n"
-				"                                      (optional; defaults to setting: default.topic)\n"
-				"  -p, --product-code [PRODUCT_CODE]   a code identifying a part of your organization or product\n"
-				"                                      (optional; defaults to setting: default.product_code)\n"
-				"  -h, --hostname [HOSTNAME]           the name of this host that will appear in the log entries\n"
-				"                                      (optional; defaults to setting: default.hostname)"
+				"  -b, --brokers [BROKERS]                a csv list of kafka brokers\n"
+				"                                         (optional; defaults to ENV JETSTREAM_BROKERS)\n"
+				"  -c, --consumer-group [CONSUMER_GROUP]  the kafka consumer group shared among all consumers\n"
+				"                                         (optional; defaults to ENV JETSTREAM_CONSUMER_GROUP)\n"
+				"  -t, --topic [TOPIC]                    a destination kafka topic\n"
+				"                                         (optional; defaults to ENV JETSTREAM_TOPIC)\n"
+				"  -p, --product-code [PRODUCT_CODE]      a code identifying a part of your organization or product\n"
+				"                                         (optional; defaults to ENV JETSTREAM_PRODUCT_CODE)\n"
+				"  -h, --hostname [HOSTNAME]              the name of this host that will appear in the log entries\n"
+				"                                         (optional; defaults to ENV JETSTREAM_HOSTNAME)"
 		<< endl;
 
 	}
@@ -189,6 +196,7 @@ namespace jetstream{
     		int current_argument_offset = 2;
 
     		string this_brokers = this->getDefaultBrokers();
+    		string this_consumer_group = this->getDefaultConsumerGroup();
     		string this_topic = this->getDefaultTopic();
     		string this_product_code = this->getDefaultProductCode();
     		string this_hostname = this->getDefaultHostname();
@@ -244,6 +252,25 @@ namespace jetstream{
     			}
 
 
+    			if( current_argument == "--consumer-group" || current_argument == "-c" ){
+
+    				current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpElasticsearch();
+						return -1;
+    				}
+    				this_consumer_group = this->command_line_arguments[ current_argument_offset ];
+
+					current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpElasticsearch();
+						return -1;
+    				}
+    				continue;
+
+    			}
+
+
     			if( current_argument == "--product-code" || current_argument == "--prd" || current_argument == "-p" ){
 
     				current_argument_offset++;
@@ -286,7 +313,7 @@ namespace jetstream{
     			if( is_last_argument ){
 
     				//add kafka consumer and Elasticsearch writer here
-    				this->runElasticsearchWriter();
+    				this->runElasticsearchWriter( this_brokers, this_consumer_group, this_topic, this_product_code, this_hostname );
     				return 0;
 
     			}
@@ -349,6 +376,18 @@ namespace jetstream{
 	}
 
 
+	string JetStream::getDefaultConsumerGroup(){
+
+		string default_consumer_group_env = this->getEnvironmentVariable( "JETSTREAM_CONSUMER_GROUP" );
+		if( default_consumer_group_env.size() > 0 ){
+			return default_consumer_group_env;
+		}
+
+		return "default_consumer_group";
+
+	}
+
+
 	string JetStream::getDefaultProductCode(){
 
 		string default_product_code_env = this->getEnvironmentVariable( "JETSTREAM_PRODUCT_CODE" );
@@ -399,9 +438,93 @@ namespace jetstream{
 
 
 
-	void JetStream::runElasticsearchWriter(){
+	void JetStream::runElasticsearchWriter( const string& brokers, const string& consumer_group, const string& topic, const string& product_code, const string& hostname ){
+
+		//setup kafka consumer
+
+			using cppkafka::Consumer;
+			using cppkafka::Configuration;
+			using cppkafka::Message;
+			using cppkafka::TopicPartitionList;
+
+			// Construct the configuration
+				cppkafka::Configuration kafka_config = {
+				    { "metadata.broker.list", brokers },
+				    { "group.id", consumer_group },
+				    // Disable auto commit
+				    { "enable.auto.commit", false }
+				};
 
 
+			// Create the consumer
+    			cppkafka::Consumer kafka_consumer( kafka_config );
+
+		    // Print the assigned partitions on assignment
+			    kafka_consumer.set_assignment_callback([](const TopicPartitionList& partitions) {
+			        cout << "JetStream: Got assigned partitions: " << partitions << endl; 
+			    });
+
+		    // Print the revoked partitions on revocation
+			    kafka_consumer.set_revocation_callback([](const TopicPartitionList& partitions) {
+			    	cout << "JetStream: Got revoked partitions: " << partitions << endl; 
+			    });
+
+			// Subscribe
+			    kafka_consumer.subscribe( { topic } );
+
+
+
+		//consume from kafka
+			while( this->run ){
+
+		        // Try to consume a message
+		        Message message = kafka_consumer.poll();
+
+
+			    if( message ){
+
+			        // If we managed to get a message
+			        if( message.get_error() ){
+
+			            // Ignore EOF notifications from rdkafka
+			            if( !message.is_eof() ){
+			            	cerr << "JetStream: [+] Received error notification: " + message.get_error().to_string() << endl;
+			            }
+
+			        } else {
+
+			            // Print the key (if any)
+			            if( message.get_key() ){
+			                cout << "JetStream: message key: " + string(message.get_key()) << endl;
+			            }
+
+			            const string payload = message.get_payload();
+
+						// Now commit the message (ack kafka)
+			            kafka_consumer.commit(message);
+
+			            json json_object;
+			            try{
+			            	json_object = json::parse( payload );
+			        		try{
+			        			//this->apply( json_object );
+			                }catch( const std::exception& e ){
+			                	cerr << "JetStream: failed to apply object: " + string(e.what()) << endl;
+			                }
+			            }catch( const std::exception& e ){
+			            	cerr << "JetStream: failed to parse payload: " + string(e.what()) << endl;
+			            }
+
+			        }
+
+			    }
+
+
+			}
+
+			cout << "JetStream: exiting." << endl;
+
+		//write to elasticsearch
 
 
 	}

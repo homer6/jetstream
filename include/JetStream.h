@@ -42,11 +42,12 @@ namespace jetstream{
 
 	        string getDefaultTopic();
 	        string getDefaultBrokers();
+	        string getDefaultConsumerGroup();
 	        string getDefaultProductCode();
 	        string getDefaultHostname();
 
 
-	        void runElasticsearchWriter();
+	        void runElasticsearchWriter( const string& brokers, const string& consumer_group, const string& topic, const string& product_code, const string& hostname );
 
 
 	     	bool run;
@@ -60,9 +61,7 @@ namespace jetstream{
 
 	     	vector<string> additional_arguments;
 	     	map<string,string> environment_variables;
-
-
-     	
+    	
 
 	};
 

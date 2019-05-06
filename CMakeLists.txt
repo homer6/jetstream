@@ -17,8 +17,9 @@ set( JETSTREAM_SOURCES
 
 set( JETSTREAM_LIBS
     rdkafka
-    pthread
-    dl
+    cppkafka
+    # pthread
+    # dl
 )
 
 
@@ -31,7 +32,7 @@ set( JETSTREAM_COMPILE_OPTIONS
 
 add_executable( build/jetstream ${JETSTREAM_SOURCES} src/jetstream_main.cc )
 
-target_link_libraries( build/jetstream -Wl,-rpath=/usr/local/lib/logport:. ${JETSTREAM_LIBS} )
+target_link_libraries( build/jetstream -Wl,-rpath=/usr/local/lib/logport:/usr/local/lib:. ${JETSTREAM_LIBS} )
 
 set_target_properties( build/jetstream
     PROPERTIES
