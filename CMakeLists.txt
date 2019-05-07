@@ -18,21 +18,26 @@ set( JETSTREAM_SOURCES
 set( JETSTREAM_LIBS
     rdkafka
     cppkafka
-    # pthread
-    # dl
+    pthread
+    dl
+    ssl
+    crypto
+    z
 )
-
 
 set( JETSTREAM_COMPILE_OPTIONS
     -Wall
     -Wextra
-    -O3   
+    -O3
     -std=c++17
+    -DCPPHTTPLIB_OPENSSL_SUPPORT
+    -DCPPHTTPLIB_ZLIB_SUPPORT
+    # -g
 )
 
 add_executable( build/jetstream ${JETSTREAM_SOURCES} src/jetstream_main.cc )
 
-target_link_libraries( build/jetstream -Wl,-rpath=/usr/local/lib/logport:/usr/local/lib:. ${JETSTREAM_LIBS} )
+target_link_libraries( build/jetstream -Wl,-rpath=/usr/local/lib/logport:. ${JETSTREAM_LIBS} )
 
 set_target_properties( build/jetstream
     PROPERTIES

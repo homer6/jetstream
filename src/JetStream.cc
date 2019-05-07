@@ -34,6 +34,8 @@ using json = nlohmann::json;
 
 #include <cppkafka/cppkafka.h>
 
+#include <httplib.h>
+
 
 #include <map>
 using std::map;
@@ -473,8 +475,12 @@ namespace jetstream{
 			    kafka_consumer.subscribe( { topic } );
 
 
+		// connect to elasticsearch
+			httplib::Client http_client( "127.0.0.1", 9200 );
 
-		//consume from kafka
+			//int x = 0;
+
+		// consume from kafka
 			while( this->run ){
 
 		        // Try to consume a message
@@ -500,8 +506,7 @@ namespace jetstream{
 
 			            const string payload = message.get_payload();
 
-						// Now commit the message (ack kafka)
-			            kafka_consumer.commit(message);
+
 
 			            json json_object;
 			            try{
@@ -509,9 +514,19 @@ namespace jetstream{
 			        		try{
 			        			
 			        			if( json_object.count("shipped_at") ){
-			        				cout << "json logport payload: " << json_object.dump() << " " << target_elasticsearch << endl;
+
+			        				//cout << x++ << endl;
+
+			        				auto es_response = http_client.Post("/my_index/_doc", json_object.dump(), "application/json");
+
+			        				if( es_response && es_response->status >= 200 && es_response->status < 400 ){
+										// Now commit the message (ack kafka)
+							            kafka_consumer.commit(message);
+			        				}
+
 			        			}else{
-			        				cout << payload << " " << target_elasticsearch << endl;
+			        				//ignore this message
+					        		kafka_consumer.commit(message);
 			        			}
 
 			                }catch( const std::exception& e ){

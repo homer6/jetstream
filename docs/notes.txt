@@ -58,6 +58,9 @@ POST http://path.to.your.cluster/myIndex/person/_bulk
 
 https://www.elastic.co/guide/en/elasticsearch/reference/7.x/date_nanos.html
 
+curl -X DELETE "127.0.0.1:9200/my_index"
+
+
 curl -X PUT "127.0.0.1:9200/my_index?include_type_name=true" -H 'Content-Type: application/json' -d'
 {
   "mappings": {
@@ -83,11 +86,98 @@ curl -X PUT "127.0.0.1:9200/my_index/_doc/2" -H 'Content-Type: application/json'
 curl -X PUT "127.0.0.1:9200/my_index/_doc/3" -H 'Content-Type: application/json' -d'
 { "date": 1420070400.123123 }
 '
-curl -X GET "127.0.0.1:9200/my_index/_search" -H 'Content-Type: application/json' -d'
+
+
+
+curl -X GET "127.0.0.1:9200/my_index/_search?pretty" -H 'Content-Type: application/json' -d'
 {
   "sort": { "date": "asc"} 
 }
 '
+
+
+curl -X PUT "127.0.0.1:9200/my_index/_doc/1?refresh" -H 'Content-Type: application/json' -d'
+{
+    "user": "kimchy"
+}
+'
+
+
+
+
+curl -X GET "127.0.0.1:9200/my_index/_count"
+
+curl -X GET "127.0.0.1:9200/my_index/_count?q=user:kimchy"
+
+
+curl -X GET "127.0.0.1:9200/my_index/_count?pretty" -H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "log": "hi_14"
+          }
+        }
+      ]
+    }
+  }
+}
+'
+
+
+
+curl -X GET "127.0.0.1:9200/my_index/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "log": "hi_12"
+          }
+        }
+      ]
+    }
+  }
+}
+'
+
+
+
+curl -X GET "127.0.0.1:9200/my_index/_count?pretty" -H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "nested": {
+            "path": "log_obj",
+            "score_mode": "max", 
+            "query": {
+              "bool": {
+                "must": [
+                  {
+                    "match": {
+                      "log_obj.log": "hi10"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+'
+
+
+
+
+
 
 
 
