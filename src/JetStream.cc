@@ -476,7 +476,8 @@ namespace jetstream{
 
 
 		// connect to elasticsearch
-			httplib::Client http_client( "127.0.0.1", 9200 );
+			httplib::Client http_client( "192.168.1.91", 9200 );
+			//httplib::SSLClient http_client( "127.0.0.1", 9200 );
 
 			//int x = 0;
 

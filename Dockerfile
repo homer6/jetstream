@@ -14,6 +14,8 @@ ADD build/libcrypto.so.1.1 /usr/local/lib/logport/libcrypto.so.1.1
 ADD build/libz.so.1 /usr/local/lib/logport/libz.so.1
 
 
+# RUN apt update && apt install -y libssl-dev && apt clean autoclean && apt-get autoremove --yes && rm -rf /var/lib/{apt,dpkg,cache,log}/
+
 
 # install logport
 ADD build/logport /usr/local/lib/logport/install/logport
