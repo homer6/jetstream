@@ -146,7 +146,14 @@ namespace jetstream{
 				"  -p, --product-code [PRODUCT_CODE]      a code identifying a part of your organization or product\n"
 				"                                         (optional; defaults to ENV JETSTREAM_PRODUCT_CODE)\n"
 				"  -h, --hostname [HOSTNAME]              the name of this host that will appear in the log entries\n"
-				"                                         (optional; defaults to ENV JETSTREAM_HOSTNAME)"
+				"                                         (optional; defaults to ENV JETSTREAM_HOSTNAME)\n"
+				"  -dh, --destination-hostname [HOSTNAME] the destination elasticsearch hostname (eg. 'localhost:9200')\n"
+				"                                         (optional; defaults to ENV JETSTREAM_DESTINATION_HOSTNAME)\n"
+				"  -di, --destination-index [INDEX]       the destination elasticsearch index\n"
+				"                                         (optional; defaults to ENV JETSTREAM_DESTINATION_INDEX)\n"
+				"  -ds, --destination-secure [SECURE]     whether the connection to the destination elasticsearch instance is secure\n"
+				"                                         eg. ('true' or 'false'). Defaults to 'false'. \n"
+				"                                         (optional; defaults to ENV JETSTREAM_DESTINATION_SECURE)\n"
 		<< endl;
 
 	}
@@ -202,6 +209,11 @@ namespace jetstream{
     		string this_topic = this->getDefaultTopic();
     		string this_product_code = this->getDefaultProductCode();
     		string this_hostname = this->getDefaultHostname();
+
+    		string destination_hostname = this->getDefaultDestinationHostname();
+    		string destination_index = this->getDefaultDestinationIndex();
+    		string destination_secure = this->getDefaultDestinationSecure();
+
 
     		bool is_last_argument = false;
 
@@ -312,10 +324,68 @@ namespace jetstream{
 
 
 
+    			if( current_argument == "--destination-hostname" || current_argument == "-dh" ){
+
+    				current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpElasticsearch();
+						return -1;
+    				}
+    				destination_hostname = this->command_line_arguments[ current_argument_offset ];
+
+					current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpElasticsearch();
+						return -1;
+    				}
+    				continue;
+
+    			}
+
+
+    			if( current_argument == "--destination-index" || current_argument == "-di" ){
+
+    				current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpElasticsearch();
+						return -1;
+    				}
+    				destination_index = this->command_line_arguments[ current_argument_offset ];
+
+					current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpElasticsearch();
+						return -1;
+    				}
+    				continue;
+
+    			}
+
+
+    			if( current_argument == "--destination-secure" || current_argument == "-ds" ){
+
+    				current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpElasticsearch();
+						return -1;
+    				}
+    				destination_secure = this->command_line_arguments[ current_argument_offset ];
+
+					current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpElasticsearch();
+						return -1;
+    				}
+    				continue;
+
+    			}
+
+
+
     			if( is_last_argument ){
 
     				//add kafka consumer and Elasticsearch writer here
-    				this->runElasticsearchWriter( this_brokers, this_consumer_group, this_topic, this_product_code, this_hostname, current_argument );
+    				this->runElasticsearchWriter( this_brokers, this_consumer_group, this_topic, this_product_code, this_hostname, destination_hostname, destination_index, destination_secure );
     				return 0;
 
     			}
@@ -414,6 +484,42 @@ namespace jetstream{
 	}
 
 
+	string JetStream::getDefaultDestinationHostname(){
+
+		string default_destination_hostname_env = this->getEnvironmentVariable( "JETSTREAM_DESTINATION_HOSTNAME" );
+		if( default_destination_hostname_env.size() > 0 ){
+			return default_destination_hostname_env;
+		}
+
+		return "localhost:9200";
+
+	}
+
+
+	string JetStream::getDefaultDestinationIndex(){
+
+		string default_destination_index_env = this->getEnvironmentVariable( "JETSTREAM_DESTINATION_INDEX" );
+		if( default_destination_index_env.size() > 0 ){
+			return default_destination_index_env;
+		}
+
+		return "my_logs";
+
+	}
+
+
+	string JetStream::getDefaultDestinationSecure(){
+
+		string default_destination_secure_env = this->getEnvironmentVariable( "JETSTREAM_DESTINATION_SECURE" );
+		if( default_destination_secure_env.size() > 0 ){
+			return default_destination_secure_env;
+		}
+
+		return "false";
+
+	}
+
+
 
 	void JetStream::loadEnvironmentVariables(){
 
@@ -440,7 +546,7 @@ namespace jetstream{
 
 
 
-	void JetStream::runElasticsearchWriter( const string& brokers, const string& consumer_group, const string& topic, const string& product_code, const string& hostname, const string& target_elasticsearch ){
+	void JetStream::runElasticsearchWriter( const string& brokers, const string& consumer_group, const string& topic, const string& product_code, const string& hostname, const string& destination_hostname, const string& destination_index, const string& destination_secure ){
 
 		//setup kafka consumer
 
@@ -476,10 +582,32 @@ namespace jetstream{
 
 
 		// connect to elasticsearch
-			httplib::Client http_client( "192.168.1.91", 9200 );
-			//httplib::SSLClient http_client( "127.0.0.1", 9200 );
+
+			int destination_port = 9200;
+			string destination_hostname_host;
+
+			vector<string> hostname_parts = jetstream::split_string( destination_hostname, ':' );
+			if( hostname_parts.size() == 2 ){
+				destination_hostname_host = hostname_parts[0];
+				destination_port = std::stoi( hostname_parts[1] );
+			}else if( hostname_parts.size() == 1 ){
+				destination_hostname_host = hostname_parts[0];
+			}else{
+				throw std::runtime_error( "Unexpected elasticsearch target hostname: " + destination_hostname );
+			}
+
+			std::unique_ptr<httplib::Client> http_client;
+
+			if( destination_secure == "true" ){
+				http_client.reset( new httplib::SSLClient( destination_hostname_host.c_str(), destination_port ) );
+			}else{
+				http_client.reset( new httplib::Client( destination_hostname_host.c_str(), destination_port ) );
+			}
 
 			//int x = 0;
+
+
+			const string post_path = "/" + destination_index + "/_doc"; 
 
 		// consume from kafka
 			while( this->run ){
@@ -518,9 +646,9 @@ namespace jetstream{
 
 			        				//cout << x++ << endl;
 
-			        				auto es_response = http_client.Post("/my_index/_doc", json_object.dump(), "application/json");
+			        				std::shared_ptr<httplib::Response> es_response = http_client->Post( post_path.c_str(), json_object.dump(), "application/json");
 
-			        				if( es_response && es_response->status >= 200 && es_response->status < 400 ){
+			        				if( es_response && es_response->status >= 200 && es_response->status < 300 ){
 										// Now commit the message (ack kafka)
 							            kafka_consumer.commit(message);
 			        				}
