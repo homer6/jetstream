@@ -1,4 +1,21 @@
 
+
+/usr/local/kafka/bin/zookeeper-server-start.sh /usr/local/kafka/config/zookeeper.properties &
+
+
+/usr/local/kafka/bin/kafka-server-start.sh /usr/local/kafka/config/server.properties &
+
+
+kafkacat -C -b 192.168.1.91 -o -10 -t my_logs
+
+
+
+
+
+
+
+
+
 https://www.elastic.co/guide/en/elasticsearch/reference/7.0/getting-started-create-index.html
 
 
