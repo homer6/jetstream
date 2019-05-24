@@ -8,10 +8,39 @@ cd jetstream
 docker build -t jetstream:latest .
 ```
 
+## Building with docker
+```
+make
+docker build -t jetstream:latest -t homer6/jetstream:latest .
+docker push homer6/jetstream:latest
+```
+
+
 ## Running with docker
 ```
-docker run -d --env JETSTREAM_TOPIC=my_logs jetstream:latest elasticsearch 192.168.1.91:9200
-# docker run -it --env JETSTREAM_TOPIC=my_logs jetstream:latest elasticsearch
+# logz.io
+# the topic that jetstream is watching's logs will go to logz.io from JETSTREAM_TOPIC(my_logs)
+# jestream uses logport to ship it's own logs
+# jetstream's logs will go to LOGPORT_TOPIC(my_logs_logger)
+# jetstream's logs cannot go to the topic it is consumer (ie. the two values above cannot be the same or it'll create a feedback loop) 
+
+docker run -d \
+    --restart unless-stopped \
+    \
+    --env LOGPORT_BROKERS=192.168.1.91,192.168.1.92,192.168.1.93 \
+    --env LOGPORT_TOPIC=my_logs_logger \
+    --env LOGPORT_PRODUCT_CODE=prd4096 \
+    --env LOGPORT_HOSTNAME=my.hostname.com \
+    \
+    --env JETSTREAM_BROKERS=192.168.1.91,192.168.1.92,192.168.1.93 \
+    --env JETSTREAM_CONSUMER_GROUP=prd4096_mylogs \
+    --env JETSTREAM_TOPIC=my_logs \
+    --env JETSTREAM_PRODUCT_CODE=prd4096 \
+    --env JETSTREAM_HOSTNAME=my.hostname.com \
+    \
+    --env JETSTREAM_LOGZIO_TOKEN=my_logz_token \
+    \
+    homer6/jetstream:latest logzio
 ```
 
 ## Running on prem

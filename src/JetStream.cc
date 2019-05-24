@@ -571,16 +571,7 @@ namespace jetstream{
 
     			if( is_last_argument ){
 
-    				if( this_token == "TOKEN" ){
-    					cout << "Error: Logz.io token is required." << endl;
-    					this->printHelpLogzio();
-						return -1;
-    				}
-
-
-    				//add kafka consumer and Elasticsearch writer here
-    				this->runLogzioWriter( this_brokers, this_consumer_group, this_topic, this_product_code, this_hostname, this_token );
-    				return 0;
+    				break;
 
     			}
 
@@ -588,6 +579,16 @@ namespace jetstream{
     			current_argument_offset++;
 
     		}
+
+			if( this_token == "TOKEN" ){
+				cout << "Error: Logz.io token is required." << endl;
+				this->printHelpLogzio();
+				return -1;
+			}
+
+
+			//add kafka consumer and Elasticsearch writer here
+			this->runLogzioWriter( this_brokers, this_consumer_group, this_topic, this_product_code, this_hostname, this_token );
 
     		return 0;
 

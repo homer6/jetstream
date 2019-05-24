@@ -1,14 +1,31 @@
 
+# Download Kafka
+wget https://www-us.apache.org/dist/kafka/2.2.0/kafka_2.12-2.2.0.tgz
+tar -xzf kafka_2.12-2.2.0.tgz
+mv kafka_2.12-2.2.0 /usr/local/kafka
+alias kt='/usr/local/kafka/bin/kafka-topics.sh'
 
+# Create topic for your application's logs (1 day retention or 50GB, whichever comes first)
+kt --create --bootstrap-server 192.168.1.91:9092 --replication-factor 3 --partitions 1 --config retention.ms=86400000 --config retention.bytes=50000000000 --topic my_logs
+
+# Create topic for jetstream's logs (1 day retention or 50GB, whichever comes first)
+kt --create --bootstrap-server 192.168.1.91:9092 --replication-factor 3 --partitions 1 --config retention.ms=86400000 --config retention.bytes=50000000000 --topic my_logs_logger
+
+
+
+
+
+# Start zookeeper
 /usr/local/kafka/bin/zookeeper-server-start.sh /usr/local/kafka/config/zookeeper.properties &
 
-
+# Start kafka
 /usr/local/kafka/bin/kafka-server-start.sh /usr/local/kafka/config/server.properties &
 
-
+# Watch application's logs
 kafkacat -C -b 192.168.1.91 -o -10 -t my_logs
 
-
+# Watch jetstream's logs
+kafkacat -C -b 192.168.1.91 -o -10 -t my_log_logger
 
 
 
