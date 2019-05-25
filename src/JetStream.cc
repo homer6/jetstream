@@ -1196,11 +1196,29 @@ namespace jetstream{
 										*/
 
 
-
 				        				if( es_response->status >= 200 && es_response->status < 300 ){
 											// Now commit the message (ack kafka)
 								            kafka_consumer.commit(message);
+				        				}else{
+
+				        					json bad_response_object = json::object();
+
+				        					bad_response_object["description"] = "Logz.io non-200 response.";
+				        					bad_response_object["body"] = es_response->body;
+				        					bad_response_object["status"] = es_response->status;
+				        					bad_response_object["headers"] = json::object();
+
+				        					for( auto &header : es_response->headers ){
+				        						bad_response_object["headers"][header.first] = header.second;
+				        					}
+
+				        					cerr << bad_response_object.dump() << endl;
+
 				        				}
+
+			        				}else{
+
+			        					cerr << "No response object." << endl;
 
 			        				}
 
@@ -1301,7 +1319,7 @@ namespace jetstream{
 			container1["command"].push_back( subcommand );
 			container1["args"] = json::array();
 
-			
+
 
 			json& env = container1["env"];
 

@@ -68,6 +68,13 @@ kt --create --bootstrap-server 192.168.1.91:9092 \
             --config retention.ms=86400000 \
             --config retention.bytes=50000000000 \
             --topic observability.prd4096.application_name.logger
+
+kt --create --bootstrap-server 192.168.1.91:9092 \
+            --replication-factor 3 \
+            --partitions 1 \
+            --config retention.ms=86400000 \
+            --config retention.bytes=50000000000 \
+            --topic observability.prd4096.application_name.logger2
 ````
 
 
@@ -119,28 +126,51 @@ need to.
 #### Step 4a: Running jetstream within docker
 ```
 # logz.io
-# the topic that jetstream is watching's logs will go to logz.io from JETSTREAM_TOPIC(my_logs)
-# jestream uses logport to ship it's own logs
-# jetstream's logs will go to LOGPORT_TOPIC(my_logs_logger)
-# jetstream's logs cannot go to the topic it is consumer (ie. the two values above cannot be the same or it'll create a feedback loop) 
+# You'll have two indices in logz.io: one for the application logs (observability.prd4096.application_name), and one for the logging infrastructure's own logs (observability.prd4096.application_name.logger)
+# jetstream will ship both
+# jetstream's logs cannot go to the topic it is consumer (ie. the two values above cannot be the same or it'll create a feedback loop)
+# Topic( observability.prd4096.application_name.logger2 ) will not be shipped, but can be viewed in kafka.
 
 docker run -d \
     --restart unless-stopped \
+    --network host \
     \
     --env LOGPORT_BROKERS=192.168.1.91,192.168.1.92,192.168.1.93 \
-    --env LOGPORT_TOPIC=my_logs_logger \
+    --env LOGPORT_TOPIC=observability.prd4096.application_name.logger \
     --env LOGPORT_PRODUCT_CODE=prd4096 \
     --env LOGPORT_HOSTNAME=my.hostname.com \
     \
     --env JETSTREAM_BROKERS=192.168.1.91,192.168.1.92,192.168.1.93 \
     --env JETSTREAM_CONSUMER_GROUP=prd4096_mylogs \
-    --env JETSTREAM_TOPIC=my_logs \
+    --env JETSTREAM_TOPIC=observability.prd4096.application_name \
     --env JETSTREAM_PRODUCT_CODE=prd4096 \
     --env JETSTREAM_HOSTNAME=my.hostname.com \
     \
-    --env JETSTREAM_LOGZIO_TOKEN=my_logz_token \
+    --env JETSTREAM_LOGZIO_TOKEN=my_logz_app_token \
     \
     homer6/jetstream:latest logzio
+
+
+docker run -d \
+    --restart unless-stopped \
+    --network host \
+    \
+    --env LOGPORT_BROKERS=192.168.1.91,192.168.1.92,192.168.1.93 \
+    --env LOGPORT_TOPIC=observability.prd4096.application_name.logger2 \
+    --env LOGPORT_PRODUCT_CODE=prd4096 \
+    --env LOGPORT_HOSTNAME=my.hostname.com \
+    \
+    --env JETSTREAM_BROKERS=192.168.1.91,192.168.1.92,192.168.1.93 \
+    --env JETSTREAM_CONSUMER_GROUP=prd4096_mylogs \
+    --env JETSTREAM_TOPIC=observability.prd4096.application_name.logger \
+    --env JETSTREAM_PRODUCT_CODE=prd4096 \
+    --env JETSTREAM_HOSTNAME=my.hostname.com \
+    \
+    --env JETSTREAM_LOGZIO_TOKEN=my_logz_logger_token \
+    \
+    homer6/jetstream:latest logzio
+
+
 ```
 
 
