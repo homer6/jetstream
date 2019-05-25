@@ -186,6 +186,28 @@ namespace jetstream{
 
 
 
+	void JetStream::printHelpKube(){
+
+		cerr << "Usage: jetstream kube [OPTION]... [SUBCOMMAND]\n"
+				"Launch jetstream in kubernetes.\n"
+				"\n"
+				"Mandatory arguments to long options are mandatory for short options too.\n"
+				"  -b, --brokers [BROKERS]                a csv list of kafka brokers\n"
+				"                                         (optional; defaults to ENV JETSTREAM_BROKERS)\n"
+				"  -c, --consumer-group [CONSUMER_GROUP]  the kafka consumer group shared among all consumers\n"
+				"                                         (optional; defaults to ENV JETSTREAM_CONSUMER_GROUP)\n"
+				"  -t, --topic [TOPIC]                    a destination kafka topic\n"
+				"                                         (optional; defaults to ENV JETSTREAM_TOPIC)\n"
+				"  -p, --product-code [PRODUCT_CODE]      a code identifying a part of your organization or product\n"
+				"                                         (optional; defaults to ENV JETSTREAM_PRODUCT_CODE)\n"
+				"  -h, --hostname [HOSTNAME]              the name of this host that will appear in the log entries\n"
+				"                                         (optional; defaults to ENV JETSTREAM_HOSTNAME)\n"
+		<< endl;
+
+	}
+
+
+
     int JetStream::runFromCommandLine( int argc, char **argv ){
 
     	int x = 0;
@@ -428,6 +450,9 @@ namespace jetstream{
 
 
 
+
+
+
     	if( this->command == "logzio" ){
 
     		int current_argument_offset = 2;
@@ -593,6 +618,164 @@ namespace jetstream{
     		return 0;
 
     	}  //end logzio
+
+
+
+
+
+
+
+
+
+    	if( this->command == "kube" ){
+
+    		if( argc <= 2 ){
+
+    			this->printHelpKube();
+
+    			return -1;
+
+    		}
+
+    		int current_argument_offset = 2;
+
+    		string this_brokers = this->getDefaultBrokers();
+    		string this_consumer_group = this->getDefaultConsumerGroup();
+    		string this_topic = this->getDefaultTopic();
+    		string this_product_code = this->getDefaultProductCode();
+    		string this_hostname = this->getDefaultHostname();
+
+    		bool is_last_argument = false;
+
+    		while( current_argument_offset < argc ){
+
+    			if( current_argument_offset == argc - 1 ){
+    				is_last_argument = true;
+    			}
+
+
+    			string current_argument = this->command_line_arguments[ current_argument_offset ];
+
+
+    			if( current_argument == "--topic" || current_argument == "--topics" || current_argument == "-t" ){
+
+    				current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpKube();
+						return -1;
+    				}
+    				this_topic = this->command_line_arguments[ current_argument_offset ];
+
+					current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpKube();
+						return -1;
+    				}
+    				continue;
+
+    			}
+
+
+    			if( current_argument == "--brokers" || current_argument == "--broker" || current_argument == "-b" ){
+
+    				current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpKube();
+						return -1;
+    				}
+    				this_brokers = this->command_line_arguments[ current_argument_offset ];
+
+					current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpKube();
+						return -1;
+    				}
+    				continue;
+
+    			}
+
+
+    			if( current_argument == "--consumer-group" || current_argument == "-c" ){
+
+    				current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpKube();
+						return -1;
+    				}
+    				this_consumer_group = this->command_line_arguments[ current_argument_offset ];
+
+					current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpKube();
+						return -1;
+    				}
+    				continue;
+
+    			}
+
+
+    			if( current_argument == "--product-code" || current_argument == "--prd" || current_argument == "-p" ){
+
+    				current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpKube();
+						return -1;
+    				}
+    				this_product_code = this->command_line_arguments[ current_argument_offset ];
+
+					current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpKube();
+						return -1;
+    				}
+    				continue;
+
+    			}
+
+
+    			if( current_argument == "--hostname" || current_argument == "-h" ){
+
+    				current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpKube();
+						return -1;
+    				}
+    				this_hostname = this->command_line_arguments[ current_argument_offset ];
+
+					current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpKube();
+						return -1;
+    				}
+    				continue;
+
+    			}
+
+
+
+    			if( is_last_argument ){
+    				
+    				this->runKube( this_brokers, this_consumer_group, this_topic, this_product_code, this_hostname, current_argument );
+    				return 0;
+
+    			}
+
+
+    			current_argument_offset++;
+
+    		}
+
+    		return 0;
+
+    	}  //end kube
+    	
+
+
+
+
+
+
+
 
 
 
@@ -1043,6 +1226,130 @@ namespace jetstream{
 			cout << "JetStream: exiting." << endl;
 
 	}
+
+
+
+
+
+
+
+
+
+
+
+
+	void JetStream::runKube( const string& brokers, const string& consumer_group, const string& topic, const string& product_code, const string& hostname, const string& subcommand ){
+
+
+		// setup deployment
+
+			json deployment = R"(
+				{
+				  "apiVersion": "apps/v1",
+				  "kind": "Deployment",
+				  "metadata": {
+				    "name": "jetstream-deployment",
+				    "labels": {
+				      "app": "jetstream"
+				    }
+				  },
+				  "spec": {
+				    "replicas": 1,
+				    "selector": {
+				      "matchLabels": {
+				        "app": "jetstream"
+				      }
+				    },
+				    "template": {
+				      "metadata": {
+				        "labels": {
+				          "app": "jetstream"
+				        }
+				      },
+				      "spec": {
+				        "containers": [
+				          {
+				            "name": "jetstream",
+				            "image": "homer6/jetstream:latest",
+				            "ports": [
+				              {
+				                "containerPort": 80
+				              }
+				            ],
+                            "env": [
+                            ]
+				          }
+				        ]
+				      }
+				    }
+				  }
+				}
+			)"_json;
+
+				
+			json& labels = deployment["metadata"]["labels"];
+			labels["product_code"] = product_code;
+			labels["subcommand"] = subcommand;
+				
+			json& template_labels = deployment["spec"]["template"]["metadata"]["labels"];
+			template_labels["product_code"] = product_code;
+			template_labels["subcommand"] = subcommand;
+
+
+			json& container1 = deployment["spec"]["template"]["spec"]["containers"][0];
+			container1["command"] = json::array();
+			container1["command"].push_back( subcommand );
+			container1["args"] = json::array();
+
+			
+
+			json& env = container1["env"];
+
+			map<string,string> env_temp;
+
+			env_temp["LOGPORT_BROKERS"] = brokers;
+			env_temp["LOGPORT_TOPIC"] = topic + ".logger";
+			env_temp["LOGPORT_PRODUCT_CODE"] = product_code;
+			env_temp["LOGPORT_HOSTNAME"] = hostname;
+			
+			env_temp["JETSTREAM_BROKERS"] = brokers;
+			env_temp["JETSTREAM_CONSUMER_GROUP"] = consumer_group;
+			env_temp["JETSTREAM_TOPIC"] = topic;
+			env_temp["JETSTREAM_PRODUCT_CODE"] = product_code;
+			env_temp["JETSTREAM_HOSTNAME"] = hostname;
+
+			env_temp["JETSTREAM_DESTINATION_HOSTNAME"] = this->getDefaultDestinationHostname();
+			env_temp["JETSTREAM_DESTINATION_INDEX"] = this->getDefaultDestinationIndex();
+			env_temp["JETSTREAM_DESTINATION_SECURE"] = this->getDefaultDestinationSecure();
+
+			env_temp["JETSTREAM_LOGZIO_TOKEN"] = this->getDefaultLogzioToken();
+
+
+			for( auto& env_t : env_temp ){
+				env.push_back({
+					{ "name", env_t.first },
+					{ "value", env_t.second }
+				});
+			}
+
+
+			cout << deployment.dump(2) << endl;
+
+			//cout << "---" << endl;
+
+			//deployment["metadata"]["name"] = "jetstream-deployment-2";
+
+			//cout << deployment.dump(4) << endl;
+
+
+	}
+
+
+
+
+
+
+
 
 
 

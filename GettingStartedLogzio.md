@@ -3,6 +3,8 @@
 
 Great! You've decided that you want to push all of your observability types (obtypes) through kafka. Now what?
 
+[Logport](https://github.com/homer6/logport) enables your applications to easily produce observability types (obtypes): Metrics, application Events, Telemetry, Traces, and Logs (METTL). Once in Kafka, [Jetstream](https://github.com/homer6/jetstream) can ship your obtypes to compatible "heads" (indices or dashboards) such as Elasticsearch, Logz.io, Snowflake, Lightstep, S3, or Prometheus.
+
 
 ## High level steps:
 
@@ -139,4 +141,16 @@ docker run -d \
 
 #### Step 4b: Running jetstream within kubernetes
 
-Use the helm chart.
+```
+LOGPORT_BROKERS=192.168.1.91,192.168.1.92,192.168.1.93 \
+LOGPORT_TOPIC=my_logs_logger \
+LOGPORT_PRODUCT_CODE=prd4096 \
+LOGPORT_HOSTNAME=my.hostname.com \
+JETSTREAM_BROKERS=192.168.1.91,192.168.1.92,192.168.1.93 \
+JETSTREAM_CONSUMER_GROUP=prd4096_mylogs \
+JETSTREAM_TOPIC=my_logs \
+JETSTREAM_PRODUCT_CODE=prd4096 \
+JETSTREAM_HOSTNAME=my.hostname.com \
+JETSTREAM_LOGZIO_TOKEN=my_logz_token \
+./build/jetstream kube logzio | kubectl apply -f -
+```

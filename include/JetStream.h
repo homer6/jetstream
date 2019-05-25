@@ -31,6 +31,7 @@ namespace jetstream{
 	        void printVersion();
 	        void printHelpElasticsearch();
 	        void printHelpLogzio();
+	        void printHelpKube();
 
 	        int runFromCommandLine( int argc, char **argv );
 	        void registerSignalHandlers();
@@ -46,13 +47,17 @@ namespace jetstream{
 	        string getDefaultConsumerGroup();
 	        string getDefaultProductCode();
 	        string getDefaultHostname();
+
 	        string getDefaultDestinationHostname();
 	        string getDefaultDestinationIndex();
 	        string getDefaultDestinationSecure();
+
 	        string getDefaultLogzioToken();
 
 	        void runElasticsearchWriter( const string& brokers, const string& consumer_group, const string& topic, const string& product_code, const string& hostname, const string& destination_hostname, const string& destination_index, const string& destination_secure );
 	        void runLogzioWriter( const string& brokers, const string& consumer_group, const string& topic, const string& product_code, const string& hostname, const string& this_token );
+
+	        void runKube( const string& brokers, const string& consumer_group, const string& topic, const string& product_code, const string& hostname, const string& subcommand );
 
 
 	     	bool run;
