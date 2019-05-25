@@ -47,10 +47,20 @@ mv kafka_2.12-2.2.0 /usr/local/kafka
 alias kt='/usr/local/kafka/bin/kafka-topics.sh'
 
 # Create topic for your application's logs (1 day retention or 50GB, whichever comes first)
-kt --create --bootstrap-server 192.168.1.91:9092 --replication-factor 3 --partitions 1 --config retention.ms=86400000 --config retention.bytes=50000000000 --topic observability.prd4096.application_name
+kt --create --bootstrap-server 192.168.1.91:9092 \
+            --replication-factor 3 \
+            --partitions 1 \
+            --config retention.ms=86400000 \
+            --config retention.bytes=50000000000 \
+            --topic observability.prd4096.application_name
 
 # Create topic for jetstream's and logport's logs (1 day retention or 50GB, whichever comes first)
-kt --create --bootstrap-server 192.168.1.91:9092 --replication-factor 3 --partitions 1 --config retention.ms=86400000 --config retention.bytes=50000000000 --topic observability.prd4096.application_name.logger
+kt --create --bootstrap-server 192.168.1.91:9092 \
+            --replication-factor 3 \
+            --partitions 1 \
+            --config retention.ms=86400000 \
+            --config retention.bytes=50000000000 \
+            --topic observability.prd4096.application_name.logger
 ````
 
 
@@ -76,7 +86,10 @@ logport enable
 logport set default.brokers 192.168.1.91,192.168.1.92,192.168.1.93
 logport set default.topic observability.prd4096.application_name
 logport set default.product_code prd4096
-#[THIS VALUE DEFAULTS TO SYSTEM HOSTNAME -- ONLY SPECIFY TO OVERRIDE] logport set default.hostname my.sample.hostname
+
+# [THIS VALUE DEFAULTS TO SYSTEM HOSTNAME -- ONLY SPECIFY TO OVERRIDE] 
+# logport set default.hostname my.sample.hostname
+
 logport watch /var/log/my_application.log /var/log/syslog
 logport watch -t observability.prd4096.application_name.logger /usr/local/logport/*.log /var/log/syslog
 logport watches
