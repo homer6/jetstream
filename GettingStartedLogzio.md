@@ -14,7 +14,12 @@ Great! You've decided that you want to push all of your observability types (obt
 4. Ship your obtypes to logz.io with jetstream.
 5. View your obtypes in logz.io.
 
-Step 1 and 5 are straight forward enough. You can get the account token at https://app.logz.io/#/dashboard/settings/general  ( 'gear icon' > 'Settings' > 'General' )
+### Step 1: Create an account and logz.io token
+
+https://logz.io/freetrial/
+
+You can get the account token at https://app.logz.io/#/dashboard/settings/general  ( 'gear icon' > 'Settings' > 'General' )
+
 
 ### Step 2: Create your kafka topics
 
@@ -154,3 +159,8 @@ JETSTREAM_HOSTNAME=my.hostname.com \
 JETSTREAM_LOGZIO_TOKEN=my_logz_token \
 ./build/jetstream kube logzio | kubectl apply -f -
 ```
+
+
+#### Step 5: View your obtypes in logz.io.
+
+https://app.logz.io
