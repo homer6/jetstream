@@ -1144,8 +1144,8 @@ namespace jetstream{
 
     			//std::vector<Message> poll_batch(size_t max_batch_size, std::chrono::milliseconds timeout);
 
-				size_t max_batch_size = 2000;
-				std::chrono::milliseconds poll_timeout_ms{50};
+				size_t max_batch_size = 10000;
+				std::chrono::milliseconds poll_timeout_ms{1000};
 
 				vector<Message> messages = kafka_consumer.poll_batch( max_batch_size, poll_timeout_ms );
 
