@@ -36,6 +36,8 @@ using json = nlohmann::json;
 
 #include <httplib.h>
 
+#include <chrono>
+
 
 #include <map>
 using std::map;
@@ -1137,106 +1139,113 @@ namespace jetstream{
 			while( this->run ){
 
 		        // Try to consume a message
-		        Message message = kafka_consumer.poll();
+		        //Message message = kafka_consumer.poll();
 
 
-			    if( message ){
+    			//std::vector<Message> poll_batch(size_t max_batch_size, std::chrono::milliseconds timeout);
 
-			        // If we managed to get a message
-			        if( message.get_error() ){
+				size_t max_batch_size = 2000;
+				std::chrono::milliseconds poll_timeout_ms{50};
 
-			            // Ignore EOF notifications from rdkafka
-			            if( !message.is_eof() ){
-			            	cerr << "JetStream: [+] Received error notification: " + message.get_error().to_string() << endl;
-			            }
-
-			        } else {
-
-			            // Print the key (if any)
-			            if( message.get_key() ){
-			                cout << "JetStream: message key: " + string(message.get_key()) << endl;
-			            }
-
-			            const string payload = message.get_payload();
+				vector<Message> messages = kafka_consumer.poll_batch( max_batch_size, poll_timeout_ms );
 
 
+			    if( messages.size() ){
 
-			            //cout << "Payload: " << payload << endl;
+			    	string batch_payload;
 
-			            json json_object;
-			            try{
-			            	json_object = json::parse( payload );
-			        		try{
-			        			
-			        			if( json_object.count("shipped_at") ){
+			    	for( auto& message : messages ){
 
-			        				//cout << x++ << endl;
+				        // If we managed to get a message
+				        if( message.get_error() ){
 
-			        				string request_body = json_object.dump() + "\n";
+				            // Ignore EOF notifications from rdkafka
+				            if( !message.is_eof() ){
+				            	cerr << "JetStream: [+] Received error notification: " + message.get_error().to_string() << endl;
+				            }
 
-			        				//cout << "post_path: " << post_path << endl;
-			        				//cout << "request_body: " << request_body << endl;
+				        } else {
 
-			        				std::shared_ptr<httplib::Response> es_response = http_client.Post( post_path.c_str(), request_headers, request_body, "application/json" );
+				            // Print the key (if any)
+				            if( message.get_key() ){
+				                cout << "JetStream: message key: " + string(message.get_key()) << endl;
+				            }
 
-			        				if( es_response ){
-
-			        					/*
-			        					cout << "Status: " << es_response->status << endl;
-
-
-			        					cout << "Headers: " << endl;
-			        					for( auto &header : es_response->headers ){
-			        						cout << "   " << header.first << ": " << header.second << endl;
-
-			        					}
+				            const string payload = message.get_payload();
 
 
-			        					cout << "Body: " << es_response->body << endl;
-										*/
+				            string request_body;
+
+				            json json_object;
+				            try{
+
+				            	json_object = json::parse( payload );
+				            	request_body = json_object.dump() + "\n";
+
+				            }catch( const std::exception& e ){
+
+				            	cerr << "JetStream: failed to parse payload: " + string(e.what()) << endl;
+				            	request_body = payload + "\n";
+
+				            }
+
+				            batch_payload += request_body;
 
 
-				        				if( es_response->status >= 200 && es_response->status < 300 ){
-											// Now commit the message (ack kafka)
-								            kafka_consumer.commit(message);
-				        				}else{
+				            kafka_consumer.commit(message);
 
-				        					json bad_response_object = json::object();
+				        } // end message.get_error()
 
-				        					bad_response_object["description"] = "Logz.io non-200 response.";
-				        					bad_response_object["body"] = es_response->body;
-				        					bad_response_object["status"] = es_response->status;
-				        					bad_response_object["headers"] = json::object();
 
-				        					for( auto &header : es_response->headers ){
-				        						bad_response_object["headers"][header.first] = header.second;
-				        					}
 
-				        					cerr << bad_response_object.dump() << endl;
+		        		try{
+	        				
+	        				std::shared_ptr<httplib::Response> es_response = http_client.Post( post_path.c_str(), request_headers, batch_payload, "application/json" );
 
-				        				}
+	        				if( es_response ){
 
-			        				}else{
+		        				if( es_response->status >= 200 && es_response->status < 300 ){
 
-			        					cerr << "No response object." << endl;
+									// Now commit the message (ack kafka)
+						            //kafka_consumer.commit(message);
 
-			        				}
+		        				}else{
 
-			        			}else{
-			        				//ignore this message
-					        		kafka_consumer.commit(message);
-			        			}
+		        					json bad_response_object = json::object();
 
-			                }catch( const std::exception& e ){
-			                	cerr << "JetStream: failed to apply object: " + string(e.what()) << endl;
-			                }
-			            }catch( const std::exception& e ){
-			            	cerr << "JetStream: failed to parse payload: " + string(e.what()) << endl;
-			            }
+		        					bad_response_object["description"] = "Logz.io non-200 response.";
+		        					bad_response_object["body"] = es_response->body;
+		        					bad_response_object["status"] = es_response->status;
+		        					bad_response_object["headers"] = json::object();
 
-			        }
+		        					for( auto &header : es_response->headers ){
+		        						bad_response_object["headers"][header.first] = header.second;
+		        					}
 
-			    }
+		        					cerr << bad_response_object.dump() << endl;
+
+		        				}
+
+	        				}else{
+
+	        					cerr << "No response object." << endl;
+
+	        				}
+
+		                }catch( const std::exception& e ){
+
+		                	cerr << "JetStream: failed to send log lines to logz.io: " + string(e.what()) << endl;
+
+		                }
+
+
+
+
+			    	} //end foreach message
+
+
+
+			    } // end messages.size()
 
 
 			}
