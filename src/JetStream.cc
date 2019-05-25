@@ -1082,7 +1082,7 @@ namespace jetstream{
 
 
 
-	void JetStream::runLogzioWriter( const string& brokers, const string& consumer_group, const string& topic, const string& /*product_code*/, const string& /*hostname*/, const string& token ){
+	void JetStream::runLogzioWriter( const string& brokers, const string& consumer_group, const string& topic, const string& product_code, const string& hostname, const string& token ){
 
 		//setup kafka consumer
 
@@ -1145,7 +1145,7 @@ namespace jetstream{
     			//std::vector<Message> poll_batch(size_t max_batch_size, std::chrono::milliseconds timeout);
 
 				size_t max_batch_size = 10000;
-				std::chrono::milliseconds poll_timeout_ms{1000};
+				std::chrono::milliseconds poll_timeout_ms{100};
 
 				vector<Message> messages = kafka_consumer.poll_batch( max_batch_size, poll_timeout_ms );
 
@@ -1184,8 +1184,9 @@ namespace jetstream{
 
 				            }catch( const std::exception& e ){
 
-				            	cerr << "JetStream: failed to parse payload: " + string(e.what()) << endl;
-				            	request_body = payload + "\n";
+				            	//cerr << "JetStream: failed to parse payload: " + string(e.what()) << endl;
+						        string json_meta = "{\"shipped_at\":" + get_timestamp() + ",\"host\":\"" + hostname + "\",\"source\":\"" + topic + "\",\"prd\":\"" + product_code + "\"";
+				            	request_body = json_meta + ",\"log\":\"" + escape_to_json_string(payload) + "\"}\n";
 
 				            }
 
@@ -1242,7 +1243,6 @@ namespace jetstream{
 
 
 			    	} //end foreach message
-
 
 
 			    } // end messages.size()
