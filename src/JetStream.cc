@@ -1096,9 +1096,9 @@ namespace jetstream{
 				    { "metadata.broker.list", brokers },
 				    { "group.id", consumer_group },
 				    // Disable auto commit
-				    { "enable.auto.commit", false }
+				    { "enable.auto.commit", false },
+				    { "auto.offset.reset", "latest" } //earliest or latest
 				};
-
 
 			// Create the consumer
     			cppkafka::Consumer kafka_consumer( kafka_config );

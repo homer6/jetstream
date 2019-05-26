@@ -1,5 +1,5 @@
 //  https://github.com/yhirose/cpp-httplib
-//  744e8e7071f969be775fa7708ee05891289c48bc
+//  744e8e7071f969be775fa7708ee05891289c48bc  (Apr 12, 2019)
 //
 //  httplib.h
 //
