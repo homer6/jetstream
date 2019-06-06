@@ -1,5 +1,5 @@
 
-# Getting Started (logz.io)
+# Getting Started (cloud.elastic.co)
 
 Great! You've decided that you want to push all of your observability types (obtypes) through kafka. Now what?
 
@@ -8,17 +8,15 @@ Great! You've decided that you want to push all of your observability types (obt
 
 ## High level steps:
 
-1. Create your logz.io account. Get the account token.
+1. Create your cloud.elastic.co account and create an Elasticsearch deployment.
 2. Create your kafka topics.
 3. Ship your obtypes to kafka with logport.
-4. Ship your obtypes to logz.io with jetstream.
-5. View your obtypes in logz.io.
+4. Ship your obtypes to cloud.elastic.co with jetstream.
+5. View your obtypes in cloud.elastic.co.
 
-### Step 1: Create an account and logz.io token
+### Step 1: Create an cloud.elastic.co account and create an Elasticsearch deployment
 
-https://logz.io/freetrial/
-
-You can get the account token at https://app.logz.io/#/dashboard/settings/general  ( 'gear icon' > 'Settings' > 'General' )
+https://cloud.elastic.co/deployments/create
 
 
 ### Step 2: Create your kafka topics
@@ -121,15 +119,20 @@ writes your application's stdout/stderr to its own stdout/stderr, so you can sti
 need to.
 
 
-### Step 4: Ship your obtypes to logz.io with jetstream
+### Step 4: Ship your obtypes to Elasticsearch with jetstream
 
 #### Step 4a: Running jetstream within docker
 ```
-# logz.io
-# You'll have two indices in logz.io: one for the application logs (observability.prd4096.prod.application_name), and one for the logging infrastructure's own logs (observability.prd4096.prod.application_name.logger)
+# cloud.elastic.co
+# You'll have two indices in Elasticsearch: one for the application logs (observability.prd4096.prod.application_name), and one for the logging infrastructure's own logs (observability.prd4096.prod.application_name.logger)
 # jetstream will ship both
 # jetstream's logs cannot go to the topic it is consuming (ie. the two values above cannot be the same or it'll create a feedback loop)
 # Topic( observability.prd4096.prod.application_name.logger2 ) will not be shipped, but can be viewed in kafka.
+
+export ELASTICSEARCH_ENDPOINT=zzzzzzzzzz.us-west-2.aws.found.io:9243
+export ELASTICSEARCH_USERNAME=elastic
+export ELASTICSEARCH_PASSWORD=mypassword
+
 
 docker run -d \
     --restart unless-stopped \
@@ -146,9 +149,13 @@ docker run -d \
     --env JETSTREAM_PRODUCT_CODE=prd4096 \
     --env JETSTREAM_HOSTNAME=my.hostname.com \
     \
-    --env JETSTREAM_LOGZIO_TOKEN=my_logz_app_token \
+    --env JETSTREAM_DESTINATION_HOSTNAME=$ELASTICSEARCH_ENDPOINT \
+    --env JETSTREAM_DESTINATION_USERNAME=$ELASTICSEARCH_USERNAME \
+    --env JETSTREAM_DESTINATION_PASSWORD=$ELASTICSEARCH_PASSWORD \
+    --env JETSTREAM_DESTINATION_INDEX=mylogs \
+    --env JETSTREAM_DESTINATION_SECURE=true \
     \
-    homer6/jetstream:latest logzio
+    homer6/jetstream:latest elasticsearch
 
 
 docker run -d \
@@ -166,9 +173,13 @@ docker run -d \
     --env JETSTREAM_PRODUCT_CODE=prd4096 \
     --env JETSTREAM_HOSTNAME=my.hostname.com \
     \
-    --env JETSTREAM_LOGZIO_TOKEN=my_logz_logger_token \
+    --env JETSTREAM_DESTINATION_HOSTNAME=$ELASTICSEARCH_ENDPOINT \
+    --env JETSTREAM_DESTINATION_USERNAME=$ELASTICSEARCH_USERNAME \
+    --env JETSTREAM_DESTINATION_PASSWORD=$ELASTICSEARCH_PASSWORD \
+    --env JETSTREAM_DESTINATION_INDEX=mylogs \
+    --env JETSTREAM_DESTINATION_SECURE=true \
     \
-    homer6/jetstream:latest logzio
+    homer6/jetstream:latest elasticsearch
 
 
 ```
@@ -186,11 +197,17 @@ JETSTREAM_CONSUMER_GROUP=prd4096_mylogs \
 JETSTREAM_TOPIC=my_logs \
 JETSTREAM_PRODUCT_CODE=prd4096 \
 JETSTREAM_HOSTNAME=my.hostname.com \
-JETSTREAM_LOGZIO_TOKEN=my_logz_token \
-./build/jetstream kube logzio | kubectl apply -f -
+JETSTREAM_DESTINATION_HOSTNAME=$ELASTICSEARCH_ENDPOINT \
+JETSTREAM_DESTINATION_USERNAME=$ELASTICSEARCH_USERNAME \
+JETSTREAM_DESTINATION_PASSWORD=$ELASTICSEARCH_PASSWORD \
+JETSTREAM_DESTINATION_INDEX=mylogs \
+JETSTREAM_DESTINATION_SECURE=true \
+./build/jetstream kube elasticsearch | kubectl apply -f -
 ```
 
 
-#### Step 5: View your obtypes in logz.io.
+#### Step 5: View your obtypes in cloud.elastic.co
 
-https://app.logz.io
+ES Endpoint: https://zzzzz.us-west-2.aws.found.io:9243
+
+Kibana Endpoint: https://zzzzzz.us-west-2.aws.found.io:9243

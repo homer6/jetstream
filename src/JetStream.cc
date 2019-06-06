@@ -152,6 +152,10 @@ namespace jetstream{
 				"                                         (optional; defaults to ENV JETSTREAM_HOSTNAME)\n"
 				"  -dh, --destination-hostname [HOSTNAME] the destination elasticsearch hostname (eg. 'localhost:9200')\n"
 				"                                         (optional; defaults to ENV JETSTREAM_DESTINATION_HOSTNAME)\n"
+				"  -du, --destination-username [USERNAME] the destination elasticsearch username (eg. 'elastic')\n"
+				"                                         (optional; defaults to ENV JETSTREAM_DESTINATION_USERNAME)\n"
+				"  -dp, --destination-password [PASSWORD] the destination elasticsearch password (eg. 'pass123')\n"
+				"                                         (optional; defaults to ENV JETSTREAM_DESTINATION_PASSWORD)\n"
 				"  -di, --destination-index [INDEX]       the destination elasticsearch index\n"
 				"                                         (optional; defaults to ENV JETSTREAM_DESTINATION_INDEX)\n"
 				"  -ds, --destination-secure [SECURE]     whether the connection to the destination elasticsearch instance is secure\n"
@@ -261,6 +265,8 @@ namespace jetstream{
     		string this_hostname = this->getDefaultHostname();
 
     		string destination_hostname = this->getDefaultDestinationHostname();
+    		string destination_username = this->getDefaultDestinationUsername();
+    		string destination_password = this->getDefaultDestinationPassword();
     		string destination_index = this->getDefaultDestinationIndex();
     		string destination_secure = this->getDefaultDestinationSecure();
 
@@ -393,6 +399,46 @@ namespace jetstream{
     			}
 
 
+
+    			if( current_argument == "--destination-username" || current_argument == "-du" ){
+
+    				current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpElasticsearch();
+						return -1;
+    				}
+    				destination_username = this->command_line_arguments[ current_argument_offset ];
+
+					current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpElasticsearch();
+						return -1;
+    				}
+    				continue;
+
+    			}
+
+
+
+    			if( current_argument == "--destination-password" || current_argument == "-dp" ){
+
+    				current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpElasticsearch();
+						return -1;
+    				}
+    				destination_password = this->command_line_arguments[ current_argument_offset ];
+
+					current_argument_offset++;
+    				if( current_argument_offset >= argc ){
+						this->printHelpElasticsearch();
+						return -1;
+    				}
+    				continue;
+
+    			}
+
+
     			if( current_argument == "--destination-index" || current_argument == "-di" ){
 
     				current_argument_offset++;
@@ -435,7 +481,7 @@ namespace jetstream{
     			if( is_last_argument ){
 
     				//add kafka consumer and Elasticsearch writer here
-    				this->runElasticsearchWriter( this_brokers, this_consumer_group, this_topic, this_product_code, this_hostname, destination_hostname, destination_index, destination_secure );
+    				this->runElasticsearchWriter( this_brokers, this_consumer_group, this_topic, this_product_code, this_hostname, destination_hostname, destination_username, destination_password, destination_index, destination_secure );
     				return 0;
 
     			}
@@ -877,6 +923,30 @@ namespace jetstream{
 	}
 
 
+	string JetStream::getDefaultDestinationUsername(){
+
+		string default_destination_username_env = this->getEnvironmentVariable( "JETSTREAM_DESTINATION_USERNAME" );
+		if( default_destination_username_env.size() > 0 ){
+			return default_destination_username_env;
+		}
+
+		return "username";
+
+	}
+
+
+	string JetStream::getDefaultDestinationPassword(){
+
+		string default_destination_password_env = this->getEnvironmentVariable( "JETSTREAM_DESTINATION_PASSWORD" );
+		if( default_destination_password_env.size() > 0 ){
+			return default_destination_password_env;
+		}
+
+		return "password";
+
+	}
+
+
 	string JetStream::getDefaultDestinationIndex(){
 
 		string default_destination_index_env = this->getEnvironmentVariable( "JETSTREAM_DESTINATION_INDEX" );
@@ -939,7 +1009,7 @@ namespace jetstream{
 
 
 
-	void JetStream::runElasticsearchWriter( const string& brokers, const string& consumer_group, const string& topic, const string& /*product_code*/, const string& /*hostname*/, const string& destination_hostname, const string& destination_index, const string& destination_secure ){
+	void JetStream::runElasticsearchWriter( const string& brokers, const string& consumer_group, const string& topic, const string& product_code, const string& hostname, const string& destination_hostname, const string& destination_username, const string& destination_password, const string& destination_index, const string& destination_secure ){
 
 		//setup kafka consumer
 
@@ -953,7 +1023,8 @@ namespace jetstream{
 				    { "metadata.broker.list", brokers },
 				    { "group.id", consumer_group },
 				    // Disable auto commit
-				    { "enable.auto.commit", false }
+				    { "enable.auto.commit", false },
+				    { "auto.offset.reset", "latest" } //earliest or latest
 				};
 
 
@@ -1000,80 +1071,147 @@ namespace jetstream{
 			//int x = 0;
 
 
-			const string post_path = "/" + destination_index + "/_doc"; 
+			const string post_path = "/" + destination_index + "/_bulk"; 
+
+
+
+		// connect to elasticsearch
+
+			//int x = 0;
+
+			httplib::Headers request_headers{
+				{ "Host", destination_hostname },
+				{ "User-Agent", "jetstream-" + this->current_version }
+			};
+
+			if( destination_username.size() ){
+				const string basic_auth_credentials = encodeBase64( destination_username + ":" + destination_password );
+				request_headers.insert( { "Authorization", "Basic " + basic_auth_credentials } );
+			}
+
+
 
 		// consume from kafka
 			while( this->run ){
 
-		        // Try to consume a message
-		        Message message = kafka_consumer.poll();
+
+				try{
+
+					// Try to consume a message
+			        //Message message = kafka_consumer.poll();
+    	
+					size_t max_batch_size = 20000;
+					std::chrono::milliseconds poll_timeout_ms{1000};
+
+					vector<Message> messages = kafka_consumer.poll_batch( max_batch_size, poll_timeout_ms );
 
 
-			    if( message ){
+				    if( messages.size() ){
 
-			        // If we managed to get a message
-			        if( message.get_error() ){
+				    	string batch_payload;
 
-			            // Ignore EOF notifications from rdkafka
-			            if( !message.is_eof() ){
-			            	cerr << "JetStream: [+] Received error notification: " + message.get_error().to_string() << endl;
-			            }
+				    	for( auto& message : messages ){
 
-			        } else {
+					        // If we managed to get a message
+					        if( message.get_error() ){
 
-			            // Print the key (if any)
-			            if( message.get_key() ){
-			                cout << "JetStream: message key: " + string(message.get_key()) << endl;
-			            }
+					            // Ignore EOF notifications from rdkafka
+					            if( !message.is_eof() ){
+					            	cerr << "JetStream: [+] Received error notification: " + message.get_error().to_string() << endl;
+					            }
 
-			            const string payload = message.get_payload();
+					        } else {
 
+					            // Print the key (if any)
+					            //if( message.get_key() ){
+					            //    cout << "JetStream: message key: " + string(message.get_key()) << endl;
+					            //}
 
-
-			            json json_object;
-			            try{
-			            	json_object = json::parse( payload );
-			        		try{
-			        			
-			        			if( json_object.count("shipped_at") ){
-
-			        				//cout << x++ << endl;
-
-			        				std::shared_ptr<httplib::Response> es_response = http_client->Post( post_path.c_str(), json_object.dump(), "application/json");
-
-			        				if( es_response ){
-
-			        					if( es_response->status >= 200 && es_response->status < 300 ){
-											// Now commit the message (ack kafka)
-								            kafka_consumer.commit(message);
-				        				}
-
-			        				}
+					            const string payload = message.get_payload();
 
 
-			        			}else{
-			        				//ignore this message
-					        		kafka_consumer.commit(message);
-			        			}
+					            string request_body = "{\"index\":{\"_index\":\"" + destination_index + "\",\"_type\":\"doc\"} }\n";
 
-			                }catch( const std::exception& e ){
-			                	cerr << "JetStream: failed to apply object: " + string(e.what()) << endl;
-			                }
-			            }catch( const std::exception& e ){
-			            	cerr << "JetStream: failed to parse payload: " + string(e.what()) << endl;
-			            }
+					            json json_object;
+					            try{
 
-			        }
+					            	json_object = json::parse( payload );
+					            	request_body += json_object.dump() + "\n";
 
-			    }
+					            }catch( const std::exception& e ){
+
+					            	//cerr << "JetStream: failed to parse payload: " + string(e.what()) << endl;
+							        string json_meta = "{\"@timestamp\":" + get_timestamp() + ",\"host\":\"" + hostname + "\",\"source\":\"" + topic + "\",\"prd\":\"" + product_code + "\"";
+					            	request_body += json_meta + ",\"log\":\"" + escape_to_json_string(payload) + "\"}\n";
+
+					            }
+
+					            batch_payload += request_body;
 
 
-			}
+					            kafka_consumer.commit(message);
+
+					        } // end message.get_error()
+
+
+					    } //end foreach message
+
+
+
+		        		try{
+	        				
+	        				std::shared_ptr<httplib::Response> es_response = http_client->Post( post_path.c_str(), request_headers, batch_payload, "application/x-ndjson" );
+
+	        				if( es_response ){
+
+		        				if( es_response->status >= 200 && es_response->status < 300 ){
+
+									// Now commit the message (ack kafka)
+						            //kafka_consumer.commit(message);
+
+		        				}else{
+
+		        					json bad_response_object = json::object();
+
+		        					bad_response_object["description"] = "Elasticsearch non-200 response.";
+		        					bad_response_object["body"] = es_response->body;
+		        					bad_response_object["status"] = es_response->status;
+		        					bad_response_object["headers"] = json::object();
+
+		        					for( auto &header : es_response->headers ){
+		        						bad_response_object["headers"][header.first] = header.second;
+		        					}
+
+		        					cerr << bad_response_object.dump() << endl;
+
+		        				}
+
+	        				}else{
+
+	        					cerr << "No response object." << endl;
+
+	        				}
+
+		                }catch( const std::exception& e ){
+
+		                	cerr << "JetStream: failed to send log lines to elasticsearch: " + string(e.what()) << endl;
+
+		                }
+
+
+				    } // end messages.size()
+
+				}catch( std::exception &e ){
+
+					cerr << "JetStream: general exception caught with elasticsearch writer: " + string(e.what()) << endl;
+
+				}
+
+
+
+			} // end while run
 
 			cout << "JetStream: exiting." << endl;
-
-		//write to elasticsearch
-
 
 	}
 
@@ -1145,7 +1283,7 @@ namespace jetstream{
 			        //Message message = kafka_consumer.poll();
     	
 					size_t max_batch_size = 20000;
-					std::chrono::milliseconds poll_timeout_ms{500};
+					std::chrono::milliseconds poll_timeout_ms{1000};
 
 					vector<Message> messages = kafka_consumer.poll_batch( max_batch_size, poll_timeout_ms );
 
@@ -1167,9 +1305,9 @@ namespace jetstream{
 					        } else {
 
 					            // Print the key (if any)
-					            if( message.get_key() ){
-					                cout << "JetStream: message key: " + string(message.get_key()) << endl;
-					            }
+					            //if( message.get_key() ){
+					            //   cout << "JetStream: message key: " + string(message.get_key()) << endl;
+					            //}
 
 					            const string payload = message.get_payload();
 
@@ -1185,7 +1323,7 @@ namespace jetstream{
 					            }catch( const std::exception& e ){
 
 					            	//cerr << "JetStream: failed to parse payload: " + string(e.what()) << endl;
-							        string json_meta = "{\"shipped_at\":" + get_timestamp() + ",\"host\":\"" + hostname + "\",\"source\":\"" + topic + "\",\"prd\":\"" + product_code + "\"";
+							        string json_meta = "{\"@timestamp\":" + get_timestamp() + ",\"host\":\"" + hostname + "\",\"source\":\"" + topic + "\",\"prd\":\"" + product_code + "\"";
 					            	request_body = json_meta + ",\"log\":\"" + escape_to_json_string(payload) + "\"}\n";
 
 					            }
@@ -1197,55 +1335,52 @@ namespace jetstream{
 
 					        } // end message.get_error()
 
+					    } //end foreach message
 
 
-			        		try{
-		        				
-		        				std::shared_ptr<httplib::Response> es_response = http_client.Post( post_path.c_str(), request_headers, batch_payload, "application/json" );
+		        		try{
+	        				
+	        				std::shared_ptr<httplib::Response> es_response = http_client.Post( post_path.c_str(), request_headers, batch_payload, "application/json" );
 
-		        				if( es_response ){
+	        				if( es_response ){
 
-			        				if( es_response->status >= 200 && es_response->status < 300 ){
+		        				if( es_response->status >= 200 && es_response->status < 300 ){
 
-										// Now commit the message (ack kafka)
-							            //kafka_consumer.commit(message);
-
-			        				}else{
-
-			        					json bad_response_object = json::object();
-
-			        					bad_response_object["description"] = "Logz.io non-200 response.";
-			        					bad_response_object["body"] = es_response->body;
-			        					bad_response_object["status"] = es_response->status;
-			        					bad_response_object["headers"] = json::object();
-
-			        					for( auto &header : es_response->headers ){
-			        						bad_response_object["headers"][header.first] = header.second;
-			        					}
-
-			        					cerr << bad_response_object.dump() << endl;
-
-			        				}
+									// Now commit the message (ack kafka)
+						            //kafka_consumer.commit(message);
 
 		        				}else{
 
-		        					cerr << "No response object." << endl;
+		        					json bad_response_object = json::object();
+
+		        					bad_response_object["description"] = "Logz.io non-200 response.";
+		        					bad_response_object["body"] = es_response->body;
+		        					bad_response_object["status"] = es_response->status;
+		        					bad_response_object["headers"] = json::object();
+
+		        					for( auto &header : es_response->headers ){
+		        						bad_response_object["headers"][header.first] = header.second;
+		        					}
+
+		        					cerr << bad_response_object.dump() << endl;
 
 		        				}
 
-			                }catch( const std::exception& e ){
+	        				}else{
 
-			                	cerr << "JetStream: failed to send log lines to logz.io: " + string(e.what()) << endl;
+	        					cerr << "No response object." << endl;
 
-			                }
+	        				}
 
+		                }catch( const std::exception& e ){
 
+		                	cerr << "JetStream: failed to send log lines to logz.io: " + string(e.what()) << endl;
 
-
-				    	} //end foreach message
+		                }
 
 
 				    } // end messages.size()
+
 
 				}catch( std::exception &e ){
 
@@ -1353,6 +1488,8 @@ namespace jetstream{
 			env_temp["JETSTREAM_HOSTNAME"] = hostname;
 
 			env_temp["JETSTREAM_DESTINATION_HOSTNAME"] = this->getDefaultDestinationHostname();
+			env_temp["JETSTREAM_DESTINATION_USERNAME"] = this->getDefaultDestinationUsername();
+			env_temp["JETSTREAM_DESTINATION_PASSWORD"] = this->getDefaultDestinationPassword();
 			env_temp["JETSTREAM_DESTINATION_INDEX"] = this->getDefaultDestinationIndex();
 			env_temp["JETSTREAM_DESTINATION_SECURE"] = this->getDefaultDestinationSecure();
 
