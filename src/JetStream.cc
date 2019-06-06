@@ -1130,7 +1130,7 @@ namespace jetstream{
 					            const string payload = message.get_payload();
 
 
-					            string request_body = "{\"index\":{\"_index\":\"" + destination_index + "\",\"_type\":\"doc\"} }\n";
+					            string request_body = "{\"index\":{\"_index\":\"" + destination_index + "\",\"_type\":\"_doc\"}}\n";
 
 					            json json_object;
 					            try{
@@ -1159,7 +1159,7 @@ namespace jetstream{
 
 
 		        		try{
-	        				
+
 	        				std::shared_ptr<httplib::Response> es_response = http_client->Post( post_path.c_str(), request_headers, batch_payload, "application/x-ndjson" );
 
 	        				if( es_response ){

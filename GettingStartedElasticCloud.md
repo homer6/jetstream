@@ -98,6 +98,7 @@ logport enable
 logport set default.brokers 192.168.1.91,192.168.1.92,192.168.1.93
 logport set default.topic observability.prd4096.prod.application_name
 logport set default.product_code prd4096
+logport set rdkafka.producer.queue.buffering.max.messages 1000
 
 # [THIS VALUE DEFAULTS TO SYSTEM HOSTNAME -- ONLY SPECIFY TO OVERRIDE] 
 # logport set default.hostname my.sample.hostname
@@ -129,6 +130,7 @@ need to.
 # jetstream's logs cannot go to the topic it is consuming (ie. the two values above cannot be the same or it'll create a feedback loop)
 # Topic( observability.prd4096.prod.application_name.logger2 ) will not be shipped, but can be viewed in kafka.
 
+# no scheme (https) on endpoint
 export ELASTICSEARCH_ENDPOINT=zzzzzzzzzz.us-west-2.aws.found.io:9243
 export ELASTICSEARCH_USERNAME=elastic
 export ELASTICSEARCH_PASSWORD=mypassword
@@ -155,7 +157,7 @@ docker run -d \
     --env JETSTREAM_DESTINATION_INDEX=mylogs \
     --env JETSTREAM_DESTINATION_SECURE=true \
     \
-    homer6/jetstream:latest elasticsearch
+    homer6/jetstream:latest elasticsearch $ELASTICSEARCH_ENDPOINT
 
 
 docker run -d \

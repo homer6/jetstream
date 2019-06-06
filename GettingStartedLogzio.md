@@ -100,6 +100,7 @@ logport enable
 logport set default.brokers 192.168.1.91,192.168.1.92,192.168.1.93
 logport set default.topic observability.prd4096.prod.application_name
 logport set default.product_code prd4096
+logport set rdkafka.producer.queue.buffering.max.messages 1000
 
 # [THIS VALUE DEFAULTS TO SYSTEM HOSTNAME -- ONLY SPECIFY TO OVERRIDE] 
 # logport set default.hostname my.sample.hostname
