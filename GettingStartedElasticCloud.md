@@ -213,3 +213,5 @@ JETSTREAM_DESTINATION_SECURE=true \
 ES Endpoint: https://zzzzz.us-west-2.aws.found.io:9243
 
 Kibana Endpoint: https://zzzzzz.us-west-2.aws.found.io:9243
+
+Create (Kibana) Index Pattern: https://zzzzzz.us-west-2.aws.found.io:9243/app/kibana#/management/kibana/index_patterns
