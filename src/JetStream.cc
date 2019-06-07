@@ -1158,45 +1158,51 @@ namespace jetstream{
 
 
 
-		        		try{
 
-	        				std::shared_ptr<httplib::Response> es_response = http_client->Post( post_path.c_str(), request_headers, batch_payload, "application/x-ndjson" );
+					    if( batch_payload.size() ){
 
-	        				if( es_response ){
+			        		try{
 
-		        				if( es_response->status >= 200 && es_response->status < 300 ){
+		        				std::shared_ptr<httplib::Response> es_response = http_client->Post( post_path.c_str(), request_headers, batch_payload, "application/x-ndjson" );
 
-									// Now commit the message (ack kafka)
-						            //kafka_consumer.commit(message);
+		        				if( es_response ){
+
+			        				if( es_response->status >= 200 && es_response->status < 300 ){
+
+										// Now commit the message (ack kafka)
+							            //kafka_consumer.commit(message);
+
+			        				}else{
+
+			        					json bad_response_object = json::object();
+
+			        					bad_response_object["description"] = "Elasticsearch non-200 response.";
+			        					bad_response_object["body"] = es_response->body;
+			        					bad_response_object["status"] = es_response->status;
+			        					bad_response_object["headers"] = json::object();
+
+			        					for( auto &header : es_response->headers ){
+			        						bad_response_object["headers"][header.first] = header.second;
+			        					}
+
+			        					cerr << bad_response_object.dump() << endl;
+
+			        				}
 
 		        				}else{
 
-		        					json bad_response_object = json::object();
-
-		        					bad_response_object["description"] = "Elasticsearch non-200 response.";
-		        					bad_response_object["body"] = es_response->body;
-		        					bad_response_object["status"] = es_response->status;
-		        					bad_response_object["headers"] = json::object();
-
-		        					for( auto &header : es_response->headers ){
-		        						bad_response_object["headers"][header.first] = header.second;
-		        					}
-
-		        					cerr << bad_response_object.dump() << endl;
+		        					cerr << "No response object." << endl;
 
 		        				}
 
-	        				}else{
+			                }catch( const std::exception& e ){
 
-	        					cerr << "No response object." << endl;
+			                	cerr << "JetStream: failed to send log lines to elasticsearch: " + string(e.what()) << endl;
 
-	        				}
+			                }
 
-		                }catch( const std::exception& e ){
 
-		                	cerr << "JetStream: failed to send log lines to elasticsearch: " + string(e.what()) << endl;
-
-		                }
+					    }
 
 
 				    } // end messages.size()
@@ -1338,45 +1344,52 @@ namespace jetstream{
 					    } //end foreach message
 
 
-		        		try{
-	        				
-	        				std::shared_ptr<httplib::Response> es_response = http_client.Post( post_path.c_str(), request_headers, batch_payload, "application/json" );
 
-	        				if( es_response ){
+					    if( batch_payload.size() ){
 
-		        				if( es_response->status >= 200 && es_response->status < 300 ){
+			        		try{
+		        				
+		        				std::shared_ptr<httplib::Response> es_response = http_client.Post( post_path.c_str(), request_headers, batch_payload, "application/json" );
 
-									// Now commit the message (ack kafka)
-						            //kafka_consumer.commit(message);
+		        				if( es_response ){
+
+			        				if( es_response->status >= 200 && es_response->status < 300 ){
+
+										// Now commit the message (ack kafka)
+							            //kafka_consumer.commit(message);
+
+			        				}else{
+
+			        					json bad_response_object = json::object();
+
+			        					bad_response_object["description"] = "Logz.io non-200 response.";
+			        					bad_response_object["body"] = es_response->body;
+			        					bad_response_object["status"] = es_response->status;
+			        					bad_response_object["headers"] = json::object();
+
+			        					for( auto &header : es_response->headers ){
+			        						bad_response_object["headers"][header.first] = header.second;
+			        					}
+
+			        					cerr << bad_response_object.dump() << endl;
+
+			        				}
 
 		        				}else{
 
-		        					json bad_response_object = json::object();
-
-		        					bad_response_object["description"] = "Logz.io non-200 response.";
-		        					bad_response_object["body"] = es_response->body;
-		        					bad_response_object["status"] = es_response->status;
-		        					bad_response_object["headers"] = json::object();
-
-		        					for( auto &header : es_response->headers ){
-		        						bad_response_object["headers"][header.first] = header.second;
-		        					}
-
-		        					cerr << bad_response_object.dump() << endl;
+		        					cerr << "No response object." << endl;
 
 		        				}
 
-	        				}else{
+			                }catch( const std::exception& e ){
 
-	        					cerr << "No response object." << endl;
+			                	cerr << "JetStream: failed to send log lines to logz.io: " + string(e.what()) << endl;
 
-	        				}
+			                }
+			                
+					    }
 
-		                }catch( const std::exception& e ){
 
-		                	cerr << "JetStream: failed to send log lines to logz.io: " + string(e.what()) << endl;
-
-		                }
 
 
 				    } // end messages.size()
