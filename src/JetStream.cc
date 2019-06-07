@@ -1144,7 +1144,7 @@ namespace jetstream{
 						            		double timestamp_double = json_object["@timestamp"].get<double>();
 
 						            		//converts localtime to gmtime
-						            		const string timestamp_str = format_timestamp( timestamp_double, "%Y/%m/%d %H:%M:%S Z" );
+						            		const string timestamp_str = format_timestamp( timestamp_double, "%Y/%m/%d %H:%M:%S" );
 
 						            		json_object["@ts"] = timestamp_str;
 
@@ -1157,7 +1157,7 @@ namespace jetstream{
 					            }catch( const std::exception& e ){
 
 					            	//cerr << "JetStream: failed to parse payload: " + string(e.what()) << endl;
-							        string json_meta = "{\"@ts\":" + get_timestamp("%Y/%m/%d %H:%M:%S Z") + ",\"host\":\"" + hostname + "\",\"source\":\"" + topic + "\",\"prd\":\"" + product_code + "\"";
+							        string json_meta = "{\"@ts\":" + get_timestamp("%Y/%m/%d %H:%M:%S") + ",\"host\":\"" + hostname + "\",\"source\":\"" + topic + "\",\"prd\":\"" + product_code + "\"";
 					            	request_body += json_meta + ",\"log\":\"" + escape_to_json_string(payload) + "\"}\n";
 
 					            }
