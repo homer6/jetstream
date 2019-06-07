@@ -1136,12 +1136,28 @@ namespace jetstream{
 					            try{
 
 					            	json_object = json::parse( payload );
+
+					            	if( json_object.count("@timestamp") ){
+
+					            		if( json_object["@timestamp"].is_number() ){
+
+						            		double timestamp_double = json_object["@timestamp"].get<double>();
+
+						            		//converts localtime to gmtime
+						            		const string timestamp_str = format_timestamp( timestamp_double, "%Y/%m/%d %H:%M:%S Z" );
+
+						            		json_object["@ts"] = timestamp_str;
+
+					            		}
+
+					            	}
+
 					            	request_body += json_object.dump() + "\n";
 
 					            }catch( const std::exception& e ){
 
 					            	//cerr << "JetStream: failed to parse payload: " + string(e.what()) << endl;
-							        string json_meta = "{\"@timestamp\":" + get_timestamp() + ",\"host\":\"" + hostname + "\",\"source\":\"" + topic + "\",\"prd\":\"" + product_code + "\"";
+							        string json_meta = "{\"@ts\":" + get_timestamp("%Y/%m/%d %H:%M:%S Z") + ",\"host\":\"" + hostname + "\",\"source\":\"" + topic + "\",\"prd\":\"" + product_code + "\"";
 					            	request_body += json_meta + ",\"log\":\"" + escape_to_json_string(payload) + "\"}\n";
 
 					            }
@@ -1386,7 +1402,7 @@ namespace jetstream{
 			                	cerr << "JetStream: failed to send log lines to logz.io: " + string(e.what()) << endl;
 
 			                }
-			                
+
 					    }
 
 

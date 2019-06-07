@@ -29,6 +29,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
+#include <time.h>
 
 
 namespace jetstream{
@@ -235,24 +236,61 @@ namespace jetstream{
     }
 
 
-    string get_timestamp(){
+    string get_timestamp( const string format ){
 
-        //get timestamp (nanoseconds)
-        string current_time_string = "0.0";
-        timespec current_time;
-        if( clock_gettime(CLOCK_REALTIME, &current_time) == 0 ){
+    	if( format.size() == 0 ){
 
-            char buffer[50];
+	        //get timestamp (nanoseconds)
+	        string current_time_string = "0.0";
+	        timespec current_time;
+	        if( clock_gettime(CLOCK_REALTIME, &current_time) == 0 ){
 
-            // thanks to https://stackoverflow.com/a/8304728/278976
-            sprintf( buffer, "%lld.%.9ld", (long long)current_time.tv_sec, current_time.tv_nsec );
-            current_time_string = string(buffer);
+	            char buffer[50];
 
-        }
+	            // thanks to https://stackoverflow.com/a/8304728/278976
+	            sprintf( buffer, "%lld.%.9ld", (long long)current_time.tv_sec, current_time.tv_nsec );
+	            current_time_string = string(buffer);
 
-        return current_time_string;
+	        }
+
+	        return current_time_string;
+
+    	}
+
+
+		time_t rawtime;
+		struct tm * timeinfo;
+		char buffer[1024];
+
+		time( &rawtime );
+		//timeinfo = localtime( &rawtime );
+		timeinfo = gmtime( &rawtime );
+
+		strftime( buffer, 1024, format.c_str(), timeinfo );
+
+		return string(buffer);
 
     }
+
+
+
+
+    string format_timestamp( double timestamp, const string format ){
+
+		time_t rawtime = (time_t)timestamp;
+		struct tm * timeinfo;
+		char buffer[1024];
+
+		//timeinfo = localtime( &rawtime );
+		timeinfo = gmtime( &rawtime );
+
+		strftime( buffer, 1024, format.c_str(), timeinfo );
+
+		return string(buffer);
+
+    }
+
+
 
 
 	static int parse_int_kb_line(char* line){
@@ -396,6 +434,12 @@ namespace jetstream{
 
 	}
        
+
+
+
+
+
+
 
 
 }

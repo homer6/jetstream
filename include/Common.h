@@ -43,10 +43,14 @@ namespace jetstream{
 
 	string decodeBase64( const string& ascii_data );
 
-	
 
-	//format: 1556311722.644052770
-	string get_timestamp();
+
+	//format: 1556311722.644052770  (if format is empty)
+	//see http://www.cplusplus.com/reference/ctime/strftime/ for non-empty format
+	//both of these convert localtime to gmtime (Z)
+	string get_timestamp( const string format = "" );
+	string format_timestamp( double timestamp, const string format = "" );
+
 
 
 	// resource usage
