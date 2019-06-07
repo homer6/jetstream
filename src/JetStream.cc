@@ -1157,7 +1157,7 @@ namespace jetstream{
 					            }catch( const std::exception& e ){
 
 					            	//cerr << "JetStream: failed to parse payload: " + string(e.what()) << endl;
-							        string json_meta = "{\"@ts\":" + get_timestamp("%Y/%m/%d %H:%M:%S") + ",\"host\":\"" + hostname + "\",\"source\":\"" + topic + "\",\"prd\":\"" + product_code + "\"";
+							        string json_meta = "{\"@timestamp\":" + get_timestamp() + ",\"@ts\":\"" + get_timestamp("%Y/%m/%d %H:%M:%S") + "\",\"host\":\"" + hostname + "\",\"source\":\"" + topic + "\",\"prd\":\"" + product_code + "\"";
 					            	request_body += json_meta + ",\"log\":\"" + escape_to_json_string(payload) + "\"}\n";
 
 					            }
