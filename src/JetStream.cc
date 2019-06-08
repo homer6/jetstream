@@ -42,6 +42,13 @@ using json = nlohmann::json;
 #include <map>
 using std::map;
 
+#include "ElasticsearchWriterConfig.h"
+#include "LogzioWriterConfig.h"
+
+#include "KubeLauncherConfig.h"
+
+
+
 extern char **environ;
 
 
@@ -161,6 +168,11 @@ namespace jetstream{
 				"  -ds, --destination-secure [SECURE]     whether the connection to the destination elasticsearch instance is secure\n"
 				"                                         eg. ('true' or 'false'). Defaults to 'false'. \n"
 				"                                         (optional; defaults to ENV JETSTREAM_DESTINATION_SECURE)\n"
+				"  -ph, --prom-hostname [HOSTNAME]        prometheus push gateway hostname (eg. 'push.prom.com:5000')\n"
+				"                                         (optional; defaults to ENV JETSTREAM_PROM_HOSTNAME)\n"
+				"  -ps, --prom-secure [SECURE]            whether to use TLS for prometheus push gateway\n"
+				"                                         eg. ('true' or 'false'). Defaults to 'false'. \n"
+				"                                         (optional; defaults to ENV JETSTREAM_PROM_SECURE)\n"
 		<< endl;
 
 	}
@@ -186,6 +198,11 @@ namespace jetstream{
 				"                                         (optional; defaults to ENV JETSTREAM_HOSTNAME)\n"
 				"  --token [LOGZ_IO_TOKEN]                the API token provided by logz.io for your account\n"
 				"                                         (required; defaults to ENV JETSTREAM_LOGZIO_TOKEN)\n"
+				"  -ph, --prom-hostname [HOSTNAME]        prometheus push gateway hostname (eg. 'push.prom.com:5000')\n"
+				"                                         (optional; defaults to ENV JETSTREAM_PROM_HOSTNAME)\n"
+				"  -ps, --prom-secure [SECURE]            whether to use TLS for prometheus push gateway\n"
+				"                                         eg. ('true' or 'false'). Defaults to 'false'. \n"
+				"                                         (optional; defaults to ENV JETSTREAM_PROM_SECURE)\n"
 		<< endl;
 
 	}
@@ -246,585 +263,87 @@ namespace jetstream{
     	}
 
 
+
+
     	if( this->command == "elasticsearch" ){
 
-    		if( argc <= 2 ){
+            ElasticsearchWriterConfig config( this );
+           
+            int return_code = config.loadCommandLineArguments();
 
-    			this->printHelpElasticsearch();
+            if( return_code != 0 ){
+                return return_code;
+            }
 
-    			return -1;
+            this->runElasticsearchWriter( config );
 
-    		}
+            return 0;
 
-    		int current_argument_offset = 2;
-
-    		string this_brokers = this->getDefaultBrokers();
-    		string this_consumer_group = this->getDefaultConsumerGroup();
-    		string this_topic = this->getDefaultTopic();
-    		string this_product_code = this->getDefaultProductCode();
-    		string this_hostname = this->getDefaultHostname();
-
-    		string destination_hostname = this->getDefaultDestinationHostname();
-    		string destination_username = this->getDefaultDestinationUsername();
-    		string destination_password = this->getDefaultDestinationPassword();
-    		string destination_index = this->getDefaultDestinationIndex();
-    		string destination_secure = this->getDefaultDestinationSecure();
-
-
-    		bool is_last_argument = false;
-
-
-    		while( current_argument_offset < argc ){
-
-    			if( current_argument_offset == argc - 1 ){
-    				is_last_argument = true;
-    			}
-
-
-    			string current_argument = this->command_line_arguments[ current_argument_offset ];
-
-
-    			if( current_argument == "--topic" || current_argument == "--topics" || current_argument == "-t" ){
-
-    				current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpElasticsearch();
-						return -1;
-    				}
-    				this_topic = this->command_line_arguments[ current_argument_offset ];
-
-					current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpElasticsearch();
-						return -1;
-    				}
-    				continue;
-
-    			}
-
-
-    			if( current_argument == "--brokers" || current_argument == "--broker" || current_argument == "-b" ){
-
-    				current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpElasticsearch();
-						return -1;
-    				}
-    				this_brokers = this->command_line_arguments[ current_argument_offset ];
-
-					current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpElasticsearch();
-						return -1;
-    				}
-    				continue;
-
-    			}
-
-
-    			if( current_argument == "--consumer-group" || current_argument == "-c" ){
-
-    				current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpElasticsearch();
-						return -1;
-    				}
-    				this_consumer_group = this->command_line_arguments[ current_argument_offset ];
-
-					current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpElasticsearch();
-						return -1;
-    				}
-    				continue;
-
-    			}
-
-
-    			if( current_argument == "--product-code" || current_argument == "--prd" || current_argument == "-p" ){
-
-    				current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpElasticsearch();
-						return -1;
-    				}
-    				this_product_code = this->command_line_arguments[ current_argument_offset ];
-
-					current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpElasticsearch();
-						return -1;
-    				}
-    				continue;
-
-    			}
-
-
-    			if( current_argument == "--hostname" || current_argument == "-h" ){
-
-    				current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpElasticsearch();
-						return -1;
-    				}
-    				this_hostname = this->command_line_arguments[ current_argument_offset ];
-
-					current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpElasticsearch();
-						return -1;
-    				}
-    				continue;
-
-    			}
-
-
-
-    			if( current_argument == "--destination-hostname" || current_argument == "-dh" ){
-
-    				current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpElasticsearch();
-						return -1;
-    				}
-    				destination_hostname = this->command_line_arguments[ current_argument_offset ];
-
-					current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpElasticsearch();
-						return -1;
-    				}
-    				continue;
-
-    			}
-
-
-
-    			if( current_argument == "--destination-username" || current_argument == "-du" ){
-
-    				current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpElasticsearch();
-						return -1;
-    				}
-    				destination_username = this->command_line_arguments[ current_argument_offset ];
-
-					current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpElasticsearch();
-						return -1;
-    				}
-    				continue;
-
-    			}
-
-
-
-    			if( current_argument == "--destination-password" || current_argument == "-dp" ){
-
-    				current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpElasticsearch();
-						return -1;
-    				}
-    				destination_password = this->command_line_arguments[ current_argument_offset ];
-
-					current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpElasticsearch();
-						return -1;
-    				}
-    				continue;
-
-    			}
-
-
-    			if( current_argument == "--destination-index" || current_argument == "-di" ){
-
-    				current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpElasticsearch();
-						return -1;
-    				}
-    				destination_index = this->command_line_arguments[ current_argument_offset ];
-
-					current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpElasticsearch();
-						return -1;
-    				}
-    				continue;
-
-    			}
-
-
-    			if( current_argument == "--destination-secure" || current_argument == "-ds" ){
-
-    				current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpElasticsearch();
-						return -1;
-    				}
-    				destination_secure = this->command_line_arguments[ current_argument_offset ];
-
-					current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpElasticsearch();
-						return -1;
-    				}
-    				continue;
-
-    			}
-
-
-
-    			if( is_last_argument ){
-
-    				//add kafka consumer and Elasticsearch writer here
-    				this->runElasticsearchWriter( this_brokers, this_consumer_group, this_topic, this_product_code, this_hostname, destination_hostname, destination_username, destination_password, destination_index, destination_secure );
-    				return 0;
-
-    			}
-
-
-    			current_argument_offset++;
-
-    		}
-
-    		return 0;
-
-    	}  //end elasticsearch
+    	}
     	
-
-
-
 
 
 
     	if( this->command == "logzio" ){
 
-    		int current_argument_offset = 2;
+            LogzioWriterConfig config( this );
+           
+            int return_code = config.loadCommandLineArguments();
 
-    		string this_brokers = this->getDefaultBrokers();
-    		string this_consumer_group = this->getDefaultConsumerGroup();
-    		string this_topic = this->getDefaultTopic();
-    		string this_product_code = this->getDefaultProductCode();
-    		string this_hostname = this->getDefaultHostname();
+            if( return_code != 0 ){
+                return return_code;
+            }
 
-    		string this_token = this->getDefaultLogzioToken();
+            const string this_token = config.getConfigSetting( "destination_token" );
 
-
-    		bool is_last_argument = false;
-
-
-    		while( current_argument_offset < argc ){
-
-    			if( current_argument_offset == argc - 1 ){
-    				is_last_argument = true;
-    			}
-
-
-    			string current_argument = this->command_line_arguments[ current_argument_offset ];
-
-
-    			if( current_argument == "--topic" || current_argument == "--topics" || current_argument == "-t" ){
-
-    				current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpLogzio();
-						return -1;
-    				}
-    				this_topic = this->command_line_arguments[ current_argument_offset ];
-
-					current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpLogzio();
-						return -1;
-    				}
-    				continue;
-
-    			}
-
-
-    			if( current_argument == "--brokers" || current_argument == "--broker" || current_argument == "-b" ){
-
-    				current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpLogzio();
-						return -1;
-    				}
-    				this_brokers = this->command_line_arguments[ current_argument_offset ];
-
-					current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpLogzio();
-						return -1;
-    				}
-    				continue;
-
-    			}
-
-
-    			if( current_argument == "--consumer-group" || current_argument == "-c" ){
-
-    				current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpLogzio();
-						return -1;
-    				}
-    				this_consumer_group = this->command_line_arguments[ current_argument_offset ];
-
-					current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpLogzio();
-						return -1;
-    				}
-    				continue;
-
-    			}
-
-
-    			if( current_argument == "--product-code" || current_argument == "--prd" || current_argument == "-p" ){
-
-    				current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpLogzio();
-						return -1;
-    				}
-    				this_product_code = this->command_line_arguments[ current_argument_offset ];
-
-					current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpLogzio();
-						return -1;
-    				}
-    				continue;
-
-    			}
-
-
-    			if( current_argument == "--hostname" || current_argument == "-h" ){
-
-    				current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpLogzio();
-						return -1;
-    				}
-    				this_hostname = this->command_line_arguments[ current_argument_offset ];
-
-					current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpLogzio();
-						return -1;
-    				}
-    				continue;
-
-    			}
-
-    			if( current_argument == "--token" ){
-
-    				current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpLogzio();
-						return -1;
-    				}
-    				this_token = this->command_line_arguments[ current_argument_offset ];
-
-					current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-    					is_last_argument = true;
-    				}
-
-    				if( !is_last_argument ){
-    					continue;
-    				}
-
-    			}
-
-
-    			if( is_last_argument ){
-
-    				break;
-
-    			}
-
-
-    			current_argument_offset++;
-
-    		}
-
-			if( this_token == "TOKEN" ){
+			if( this_token == "TOKEN" || this_token == "" ){
 				cout << "Error: Logz.io token is required." << endl;
 				this->printHelpLogzio();
 				return -1;
 			}
 
-
-			//add kafka consumer and Elasticsearch writer here
-			this->runLogzioWriter( this_brokers, this_consumer_group, this_topic, this_product_code, this_hostname, this_token );
+			this->runLogzioWriter( config );
 
     		return 0;
 
-    	}  //end logzio
+    	}
 
 
 
 
 
+        if( this->command == "kube" ){
+
+            if( argc <= 2 ){
+                this->printHelpKube();
+                return -1;
+            }
+
+            KubeLauncherConfig config( this );
+           
+            int return_code = config.loadCommandLineArguments();
+
+            if( return_code != 0 ){
+                return return_code;
+            }
 
 
+            vector<string> additional_arguments = config.getAdditionalArguments();
 
+            if( additional_arguments.size() == 0 ){
+                cout << "Error: Kube requires a subcommand." << endl;
+                this->printHelpKube();
+                return -1;
+            }
 
-    	if( this->command == "kube" ){
+            const string subcommand = additional_arguments[0];
+            config.setConfigSetting( "subcommand", subcommand );
 
-    		if( argc <= 2 ){
+            this->runKube( config );
 
-    			this->printHelpKube();
+            return 0;
 
-    			return -1;
-
-    		}
-
-    		int current_argument_offset = 2;
-
-    		string this_brokers = this->getDefaultBrokers();
-    		string this_consumer_group = this->getDefaultConsumerGroup();
-    		string this_topic = this->getDefaultTopic();
-    		string this_product_code = this->getDefaultProductCode();
-    		string this_hostname = this->getDefaultHostname();
-
-    		bool is_last_argument = false;
-
-    		while( current_argument_offset < argc ){
-
-    			if( current_argument_offset == argc - 1 ){
-    				is_last_argument = true;
-    			}
-
-
-    			string current_argument = this->command_line_arguments[ current_argument_offset ];
-
-
-    			if( current_argument == "--topic" || current_argument == "--topics" || current_argument == "-t" ){
-
-    				current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpKube();
-						return -1;
-    				}
-    				this_topic = this->command_line_arguments[ current_argument_offset ];
-
-					current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpKube();
-						return -1;
-    				}
-    				continue;
-
-    			}
-
-
-    			if( current_argument == "--brokers" || current_argument == "--broker" || current_argument == "-b" ){
-
-    				current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpKube();
-						return -1;
-    				}
-    				this_brokers = this->command_line_arguments[ current_argument_offset ];
-
-					current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpKube();
-						return -1;
-    				}
-    				continue;
-
-    			}
-
-
-    			if( current_argument == "--consumer-group" || current_argument == "-c" ){
-
-    				current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpKube();
-						return -1;
-    				}
-    				this_consumer_group = this->command_line_arguments[ current_argument_offset ];
-
-					current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpKube();
-						return -1;
-    				}
-    				continue;
-
-    			}
-
-
-    			if( current_argument == "--product-code" || current_argument == "--prd" || current_argument == "-p" ){
-
-    				current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpKube();
-						return -1;
-    				}
-    				this_product_code = this->command_line_arguments[ current_argument_offset ];
-
-					current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpKube();
-						return -1;
-    				}
-    				continue;
-
-    			}
-
-
-    			if( current_argument == "--hostname" || current_argument == "-h" ){
-
-    				current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpKube();
-						return -1;
-    				}
-    				this_hostname = this->command_line_arguments[ current_argument_offset ];
-
-					current_argument_offset++;
-    				if( current_argument_offset >= argc ){
-						this->printHelpKube();
-						return -1;
-    				}
-    				continue;
-
-    			}
-
-
-
-    			if( is_last_argument ){
-    				
-    				this->runKube( this_brokers, this_consumer_group, this_topic, this_product_code, this_hostname, current_argument );
-    				return 0;
-
-    			}
-
-
-    			current_argument_offset++;
-
-    		}
-
-    		return 0;
-
-    	}  //end kube
-    	
-
-
-
-
-
-
-
-
+        }
 
 
     	this->printHelp();
@@ -971,16 +490,43 @@ namespace jetstream{
 	}
 
 
-	string JetStream::getDefaultLogzioToken(){
+	string JetStream::getDefaultDestinationToken(){
 
-		string default_logzio_token_env = this->getEnvironmentVariable( "JETSTREAM_LOGZIO_TOKEN" );
-		if( default_logzio_token_env.size() > 0 ){
-			return default_logzio_token_env;
+		string default_token_env = this->getEnvironmentVariable( "JETSTREAM_DESTINATION_TOKEN" );
+		if( default_token_env.size() > 0 ){
+			return default_token_env;
 		}
 
 		return "TOKEN";
 
 	}
+
+
+
+
+    string JetStream::getDefaultPrometheusPushGatewayHostname(){
+
+        string default_prom_hostname_env = this->getEnvironmentVariable( "JETSTREAM_PROM_HOSTNAME" );
+        if( default_prom_hostname_env.size() > 0 ){
+            return default_prom_hostname_env;
+        }
+
+        return "localhost:9200";
+
+    }
+
+    string JetStream::getDefaultPrometheusPushGatewaySecure(){
+
+        string default_prom_secure_env = this->getEnvironmentVariable( "JETSTREAM_PROM_SECURE" );
+        if( default_prom_secure_env.size() > 0 ){
+            return default_prom_secure_env;
+        }
+
+        return "false";
+
+    }
+
+
 
 
 
@@ -1009,7 +555,7 @@ namespace jetstream{
 
 
 
-	void JetStream::runElasticsearchWriter( const string& brokers, const string& consumer_group, const string& topic, const string& product_code, const string& hostname, const string& destination_hostname, const string& destination_username, const string& destination_password, const string& destination_index, const string& destination_secure ){
+	void JetStream::runElasticsearchWriter( JetStreamConfig& config ){
 
 		//setup kafka consumer
 
@@ -1020,8 +566,8 @@ namespace jetstream{
 
 			// Construct the configuration
 				cppkafka::Configuration kafka_config = {
-				    { "metadata.broker.list", brokers },
-				    { "group.id", consumer_group },
+				    { "metadata.broker.list", config.getConfigSetting("brokers") },
+				    { "group.id", config.getConfigSetting("consumer_group") },
 				    // Disable auto commit
 				    { "enable.auto.commit", false },
 				    { "auto.offset.reset", "latest" } //earliest or latest
@@ -1042,12 +588,14 @@ namespace jetstream{
 			    });
 
 			// Subscribe
-			    kafka_consumer.subscribe( { topic } );
+			    kafka_consumer.subscribe( { config.getConfigSetting("topic") } );
 
 
 		// connect to elasticsearch
 
 			int destination_port = 9200;
+            const string destination_hostname = config.getConfigSetting( "destination_hostname" );
+            const string destination_secure = config.getConfigSetting( "destination_secure" );
 			string destination_hostname_host;
 
 			vector<string> hostname_parts = jetstream::split_string( destination_hostname, ':' );
@@ -1071,7 +619,8 @@ namespace jetstream{
 			//int x = 0;
 
 
-			const string post_path = "/" + destination_index + "/_bulk"; 
+            const string destination_index = config.getConfigSetting( "destination_index" );
+			const string post_path = "/" + destination_index + "/_bulk";
 
 
 
@@ -1084,6 +633,8 @@ namespace jetstream{
 				{ "User-Agent", "jetstream-" + this->current_version }
 			};
 
+            const string destination_username = config.getConfigSetting( "destination_username" );
+            const string destination_password = config.getConfigSetting( "destination_password" );
 			if( destination_username.size() ){
 				const string basic_auth_credentials = encodeBase64( destination_username + ":" + destination_password );
 				request_headers.insert( { "Authorization", "Basic " + basic_auth_credentials } );
@@ -1157,7 +708,7 @@ namespace jetstream{
 					            }catch( const std::exception& e ){
 
 					            	//cerr << "JetStream: failed to parse payload: " + string(e.what()) << endl;
-							        string json_meta = "{\"@timestamp\":" + get_timestamp() + ",\"@ts\":\"" + get_timestamp("%Y/%m/%d %H:%M:%S") + "\",\"host\":\"" + hostname + "\",\"source\":\"" + topic + "\",\"prd\":\"" + product_code + "\"";
+							        string json_meta = "{\"@timestamp\":" + get_timestamp() + ",\"@ts\":\"" + get_timestamp("%Y/%m/%d %H:%M:%S") + "\",\"host\":\"" + config.getConfigSetting("hostname") + "\",\"source\":\"" + config.getConfigSetting("topic") + "\",\"prd\":\"" + config.getConfigSetting("product_code") + "\"";
 					            	request_body += json_meta + ",\"log\":\"" + escape_to_json_string(payload) + "\"}\n";
 
 					            }
@@ -1242,7 +793,7 @@ namespace jetstream{
 
 
 
-	void JetStream::runLogzioWriter( const string& brokers, const string& consumer_group, const string& topic, const string& product_code, const string& hostname, const string& token ){
+	void JetStream::runLogzioWriter( JetStreamConfig& config ){
 
 		//setup kafka consumer
 
@@ -1253,8 +804,8 @@ namespace jetstream{
 
 			// Construct the configuration
 				cppkafka::Configuration kafka_config = {
-				    { "metadata.broker.list", brokers },
-				    { "group.id", consumer_group },
+				    { "metadata.broker.list", config.getConfigSetting("brokers") },
+				    { "group.id", config.getConfigSetting("consumer_group") },
 				    // Disable auto commit
 				    { "enable.auto.commit", false },
 				    { "auto.offset.reset", "latest" } //earliest or latest
@@ -1274,7 +825,7 @@ namespace jetstream{
 			    });
 
 			// Subscribe
-			    kafka_consumer.subscribe( { topic } );
+			    kafka_consumer.subscribe( { config.getConfigSetting("topic") } );
 
 
 		// connect to logz.io
@@ -1287,7 +838,7 @@ namespace jetstream{
 			//int x = 0;
 
 
-			const string post_path = "/?token=" + token + "&type=json";
+			const string post_path = "/?token=" + config.getConfigSetting("destination_token") + "&type=json";
 
 			httplib::Headers request_headers{
 				{ "Host", "listener.logz.io:8071" },
@@ -1345,7 +896,7 @@ namespace jetstream{
 					            }catch( const std::exception& e ){
 
 					            	//cerr << "JetStream: failed to parse payload: " + string(e.what()) << endl;
-							        string json_meta = "{\"@timestamp\":" + get_timestamp() + ",\"host\":\"" + hostname + "\",\"source\":\"" + topic + "\",\"prd\":\"" + product_code + "\"";
+							        string json_meta = "{\"@timestamp\":" + get_timestamp() + ",\"host\":\"" + config.getConfigSetting("hostname") + "\",\"source\":\"" + config.getConfigSetting("topic") + "\",\"prd\":\"" + config.getConfigSetting("product_code") + "\"";
 					            	request_body = json_meta + ",\"log\":\"" + escape_to_json_string(payload) + "\"}\n";
 
 					            }
@@ -1436,7 +987,7 @@ namespace jetstream{
 
 
 
-	void JetStream::runKube( const string& brokers, const string& consumer_group, const string& topic, const string& product_code, const string& hostname, const string& subcommand ){
+	void JetStream::runKube( JetStreamConfig& config ){
 
 
 		// setup deployment
@@ -1484,6 +1035,24 @@ namespace jetstream{
 				}
 			)"_json;
 
+            
+            const string brokers = config.getConfigSetting("brokers");
+            const string topic = config.getConfigSetting("topic");
+            const string hostname = config.getConfigSetting("hostname");
+            const string consumer_group = config.getConfigSetting("consumer_group");
+            const string product_code = config.getConfigSetting("product_code");
+            const string subcommand = config.getConfigSetting("subcommand");
+
+            const string destination_hostname = config.getConfigSetting("destination_hostname");
+            const string destination_username = config.getConfigSetting("destination_username");
+            const string destination_password = config.getConfigSetting("destination_password");
+            const string destination_index = config.getConfigSetting("destination_index");
+            const string destination_secure = config.getConfigSetting("destination_secure");
+            const string destination_token = config.getConfigSetting("destination_token");
+
+            const string prom_hostname = config.getConfigSetting("prom_hostname");
+            const string prom_secure = config.getConfigSetting("prom_secure");
+
 				
 			json& labels = deployment["metadata"]["labels"];
 			labels["product_code"] = product_code;
@@ -1516,13 +1085,15 @@ namespace jetstream{
 			env_temp["JETSTREAM_PRODUCT_CODE"] = product_code;
 			env_temp["JETSTREAM_HOSTNAME"] = hostname;
 
-			env_temp["JETSTREAM_DESTINATION_HOSTNAME"] = this->getDefaultDestinationHostname();
-			env_temp["JETSTREAM_DESTINATION_USERNAME"] = this->getDefaultDestinationUsername();
-			env_temp["JETSTREAM_DESTINATION_PASSWORD"] = this->getDefaultDestinationPassword();
-			env_temp["JETSTREAM_DESTINATION_INDEX"] = this->getDefaultDestinationIndex();
-			env_temp["JETSTREAM_DESTINATION_SECURE"] = this->getDefaultDestinationSecure();
+			env_temp["JETSTREAM_DESTINATION_HOSTNAME"] = destination_hostname;
+			env_temp["JETSTREAM_DESTINATION_USERNAME"] = destination_username;
+			env_temp["JETSTREAM_DESTINATION_PASSWORD"] = destination_password;
+			env_temp["JETSTREAM_DESTINATION_INDEX"] = destination_index;
+            env_temp["JETSTREAM_DESTINATION_SECURE"] = destination_secure;
+            env_temp["JETSTREAM_DESTINATION_TOKEN"] = destination_token;
 
-			env_temp["JETSTREAM_LOGZIO_TOKEN"] = this->getDefaultLogzioToken();
+            env_temp["JETSTREAM_PROM_HOSTNAME"] = prom_hostname;
+			env_temp["JETSTREAM_PROM_SECURE"] = prom_secure;
 
 
 			for( auto& env_t : env_temp ){

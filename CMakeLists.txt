@@ -12,6 +12,10 @@ set( JETSTREAM_SOURCES
     src/Common.cc
     src/Observer.cc
     src/JetStream.cc
+    src/JetStreamConfig.cc
+    src/ElasticsearchWriterConfig.cc
+    src/LogzioWriterConfig.cc
+    src/KubeLauncherConfig.cc
     src/KafkaProducer.cc
 )
 

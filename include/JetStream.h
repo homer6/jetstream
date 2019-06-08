@@ -20,6 +20,8 @@ namespace jetstream{
 
 	class Inspector;
 
+	class JetStreamConfig;
+
 
 	class JetStream{
 
@@ -53,18 +55,22 @@ namespace jetstream{
 	        string getDefaultDestinationPassword();
 	        string getDefaultDestinationIndex();
 	        string getDefaultDestinationSecure();
+	        string getDefaultDestinationToken();
 
-	        string getDefaultLogzioToken();
+	        string getDefaultPrometheusPushGatewayHostname();
+	        string getDefaultPrometheusPushGatewaySecure();
 
-	        void runElasticsearchWriter( const string& brokers, const string& consumer_group, const string& topic, const string& product_code, const string& hostname, const string& destination_hostname, const string& destination_username, const string& destination_password, const string& destination_index, const string& destination_secure );
-	        void runLogzioWriter( const string& brokers, const string& consumer_group, const string& topic, const string& product_code, const string& hostname, const string& this_token );
+	        void runElasticsearchWriter( JetStreamConfig& config );
+	        void runLogzioWriter( JetStreamConfig& config );
 
-	        void runKube( const string& brokers, const string& consumer_group, const string& topic, const string& product_code, const string& hostname, const string& subcommand );
+	        void runKube( JetStreamConfig& config );
+
+
+
 
 
 	     	bool run;
 
-	    private:
 	    	Observer observer;
 
 	     	string command;

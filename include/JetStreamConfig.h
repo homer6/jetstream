@@ -1,0 +1,45 @@
+#ifndef JETSTREAM_JETSTREAM_CONFIG_H
+#define JETSTREAM_JETSTREAM_CONFIG_H
+
+#include <string>
+using std::string;
+
+#include <map>
+using std::map;
+
+#include <vector>
+using std::vector;
+
+
+namespace jetstream{
+
+	class JetStream;
+
+	class JetStreamConfig{
+
+	    public:
+	    	JetStreamConfig( JetStream *jetstream );
+	    	virtual ~JetStreamConfig();
+
+	    	virtual string getConfigSetting( const string& key ) const;
+	    	virtual void setConfigSetting( const string& key, const string& value );
+
+	    	virtual void printHelp() = 0;
+
+	    	virtual int loadCommandLineArguments();
+
+	    	virtual vector<string> getAdditionalArguments() const;
+
+
+	    	JetStream *jetstream;
+	     	map<string,string> config_settings;   	
+	     	vector<string> additional_arguments;   	
+
+	};
+
+}
+
+
+
+
+#endif //JETSTREAM_JETSTREAM_CONFIG_H
