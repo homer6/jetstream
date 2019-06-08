@@ -54,7 +54,7 @@ If you decline to provide an `obtype` key or value, or if you do not specify you
 ```
 
 
-## Trace
+## Traces
 
 All times are UTC unix time (epoch seconds with nanoseconds as decimals).
 
@@ -129,7 +129,7 @@ All times are UTC unix time (epoch seconds with nanoseconds as decimals).
 ```
 
 
-## (Application) Event
+## (Application) Events
 
 ```
 { 
