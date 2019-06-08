@@ -1,6 +1,13 @@
 # jetstream
 Kafka swiss army knife.
 
+See the [Getting Started Guides](https://github.com/homer6/jetstream/tree/master/docs) to jump right in.
+
+## Architecture Overview
+
+![Architecture](https://raw.githubusercontent.com/homer6/logport/master/docs/resources/logport_architecture.jpg)
+
+
 ## Installing
 ```
 git clone https://github.com/homer6/jetstream.git
