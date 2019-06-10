@@ -33,7 +33,12 @@ If you decline to provide an `obtype` key or value, or if you do not specify you
     "obtype": "metric",         //required
     "metric_type": "counter",   //required - see: https://prometheus.io/docs/concepts/metric_types/
     "name": "my_metric_name",   //required
-    "value": 55,                //required
+    "value_int64": "55",        //exactly one "value_*" key is required
+    "value_int32": "55",        //exactly one "value_*" key is required
+    "value_uint64": "55",       //exactly one "value_*" key is required
+    "value_uint32": "55",       //exactly one "value_*" key is required
+    "value_float64": "55.1",    //exactly one "value_*" key is required
+    "value_float32": "55.2",    //exactly one "value_*" key is required
     "labels": {
         "job": "my_app_name",   //required
         "instance": "server1.app_name.com",
