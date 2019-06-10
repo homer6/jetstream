@@ -18,10 +18,10 @@ If you decline to provide an `obtype` key or value, or if you do not specify you
 
 ```
 { 
-	"obtype": "log", 
-	"arbitrary_value_1": "abc", 
-	"arbitrary_value_2": [ "123", "456" ], 
-	"arbitrary_value_3": { "ready": "player", "one": 1 } 
+    "obtype": "log", 
+    "arbitrary_value_1": "abc", 
+    "arbitrary_value_2": [ "123", "456" ], 
+    "arbitrary_value_3": { "ready": "player", "one": 1 } 
 }
 ```
 
@@ -30,16 +30,16 @@ If you decline to provide an `obtype` key or value, or if you do not specify you
 
 ```
 { 
-	"obtype": "metric",			//required
-	"metric_type": "counter", 	//required - see: https://prometheus.io/docs/concepts/metric_types/
-	"name": "my_metric_name",	//required
-	"value": 55, 				//required
-	"labels": {
-		"job": "my_app_name", 	//required
-		"instance": "server1.app_name.com",
-		"label_1": "okay",
-		"label_2": "hello"
-	}
+    "obtype": "metric",         //required
+    "metric_type": "counter",   //required - see: https://prometheus.io/docs/concepts/metric_types/
+    "name": "my_metric_name",   //required
+    "value": 55,                //required
+    "labels": {
+        "job": "my_app_name",   //required
+        "instance": "server1.app_name.com",
+        "label_1": "okay",
+        "label_2": "hello"
+    }
 }
 ```
 
@@ -48,10 +48,10 @@ If you decline to provide an `obtype` key or value, or if you do not specify you
 
 ```
 { 
-	"obtype": "telemetric",		//required
-	"arbitrary_value_1": "abc", 
-	"arbitrary_value_2": [ "123", "456" ], 
-	"arbitrary_value_3": { "ready": "player", "one": 1 }
+    "obtype": "telemetric",     //required
+    "arbitrary_value_1": "abc", 
+    "arbitrary_value_2": [ "123", "456" ], 
+    "arbitrary_value_3": { "ready": "player", "one": 1 }
 }
 ```
 
@@ -62,71 +62,71 @@ All times are UTC unix time (epoch seconds with nanoseconds as decimals).
 
 ```
 { 
-	"obtype": "trace",
-	"trace_id": "16 byte id",
-	"span_id": "8 byte id",
-	"parent_span_id": "8 byte id",
-	"span_kind": "unspecified|server|client",
-	"name": "span_name",
-	"start_time": "1559930259.863529482",
-	"end_time": "1559930259.863529483",
-	"annotations": [
-		{
-			"time": "1559930259.863529483",
-			"message": "my message",
-			"attributes": { 
-				"attribute_1": "hello", 
-				"attribute_2": 32,
-				"attribute_3": false
-			}
-		},
-		{
-			"time": "1559930259.863529484",
-			"message": "my message 2",
-			"attributes": { 
-				"attribute_1": "hello", 
-				"attribute_2": 32,
-				"attribute_3": false
-			}
-		}
-	],
-	"message_events": [
-		{
-			"time": "1559930259.863529485",
-			"message_event_type": "unspecified|sent|received",
-			"message_id": 565656,
-			"uncompressed_byte_size": 45,
-			"compressed_byte_size": 12			
-		},
-		{
-			"time": "1559930259.863529486",
-			"message_event_type": "unspecified|sent|received",
-			"message_id": 232323,
-			"uncompressed_byte_size": 48,
-			"compressed_byte_size": 15			
-		}
-	],
-	"attributes": { 
-		"attribute_1": "player", 
-		"attribute_2": 55.25,
-		"attribute_3": true
-	},
-	"links": [
-		{
-			"trace_id": 12378978456,
-			"span_id": 564648,
-			"link_type": "unspecified|child|parent",
-			"attributes": { 
-				"attribute_1": "red", 
-				"attribute_2": 7,
-				"attribute_3": false
-			}
-		}
-	],
-	"status":{
-		"status_code": 0, //success
-		"message": "Event description."
-	}
+    "obtype": "trace",
+    "trace_id": "16 byte id",
+    "span_id": "8 byte id",
+    "parent_span_id": "8 byte id",
+    "span_kind": "unspecified|server|client",
+    "name": "span_name",
+    "start_time": "1559930259.863529482",
+    "end_time": "1559930259.863529483",
+    "annotations": [
+        {
+            "time": "1559930259.863529483",
+            "message": "my message",
+            "attributes": { 
+                "attribute_1": "hello", 
+                "attribute_2": 32,
+                "attribute_3": false
+            }
+        },
+        {
+            "time": "1559930259.863529484",
+            "message": "my message 2",
+            "attributes": { 
+                "attribute_1": "hello", 
+                "attribute_2": 32,
+                "attribute_3": false
+            }
+        }
+    ],
+    "message_events": [
+        {
+            "time": "1559930259.863529485",
+            "message_event_type": "unspecified|sent|received",
+            "message_id": 565656,
+            "uncompressed_byte_size": 45,
+            "compressed_byte_size": 12          
+        },
+        {
+            "time": "1559930259.863529486",
+            "message_event_type": "unspecified|sent|received",
+            "message_id": 232323,
+            "uncompressed_byte_size": 48,
+            "compressed_byte_size": 15          
+        }
+    ],
+    "attributes": { 
+        "attribute_1": "player", 
+        "attribute_2": 55.25,
+        "attribute_3": true
+    },
+    "links": [
+        {
+            "trace_id": 12378978456,
+            "span_id": 564648,
+            "link_type": "unspecified|child|parent",
+            "attributes": { 
+                "attribute_1": "red", 
+                "attribute_2": 7,
+                "attribute_3": false
+            }
+        }
+    ],
+    "status":{
+        "status_code": 0, //success
+        "message": "Event description."
+    }
 }
 ```
 
@@ -135,10 +135,10 @@ All times are UTC unix time (epoch seconds with nanoseconds as decimals).
 
 ```
 { 
-	"obtype": "event", 
-	"arbitrary_value_1": "abc", 
-	"arbitrary_value_2": [ "123", "456" ], 
-	"arbitrary_value_3": { "ready": "player", "one": 1 }
+    "obtype": "event", 
+    "arbitrary_value_1": "abc", 
+    "arbitrary_value_2": [ "123", "456" ], 
+    "arbitrary_value_3": { "ready": "player", "one": 1 }
 }
 ```
 
