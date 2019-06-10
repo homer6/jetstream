@@ -14,7 +14,7 @@ Everything that your application outputs (to stdout/stderr or to file), should b
 
 ## Logs
 
-If you decline to provide an `obtype` key or value, or if you do not specify your output as JSON, it'll be interpretted as a log entry.
+If you decline to provide an `obtype` key or value, or if you do not specify your output as JSON, it'll be interpreted as a log entry.
 
 ```
 { 
@@ -30,14 +30,16 @@ If you decline to provide an `obtype` key or value, or if you do not specify you
 
 ```
 { 
-	"obtype": "metric", 
-	"job": "my_app_name", 
+	"obtype": "metric",			//required
+	"metric_type": "counter", 	//required - see: https://prometheus.io/docs/concepts/metric_types/
+	"name": "my_metric_name",	//required
+	"value": 55, 				//required
 	"labels": {
+		"job": "my_app_name", 	//required
+		"instance": "server1.app_name.com",
 		"label_1": "okay",
 		"label_2": "hello"
-	},
-	"metric_type": "counter", 
-	"value": 5
+	}
 }
 ```
 
@@ -46,7 +48,7 @@ If you decline to provide an `obtype` key or value, or if you do not specify you
 
 ```
 { 
-	"obtype": "telemetric", 
+	"obtype": "telemetric",		//required
 	"arbitrary_value_1": "abc", 
 	"arbitrary_value_2": [ "123", "456" ], 
 	"arbitrary_value_3": { "ready": "player", "one": 1 }
