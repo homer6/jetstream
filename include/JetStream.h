@@ -33,6 +33,7 @@ namespace jetstream{
 	        void printVersion();
 	        void printHelpElasticsearch();
 	        void printHelpLogzio();
+	        void printHelpLoggly();
 	        void printHelpKube();
 
 	        int runFromCommandLine( int argc, char **argv );
@@ -62,6 +63,7 @@ namespace jetstream{
 
 	        void runElasticsearchWriter( JetStreamConfig& config );
 	        void runLogzioWriter( JetStreamConfig& config );
+	        void runLogglyWriter( JetStreamConfig& config );
 
 	        void runKube( JetStreamConfig& config );
 

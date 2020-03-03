@@ -5,8 +5,14 @@ project( jetstream CXX C )
 
 include_directories(
     include
-    # /usr/local/include/librdkafka
+    /usr/local/include/librdkafka
+    /usr/local/include/cppkafka
 )
+
+FIND_LIBRARY(RDKAFKA rdkafka /usr/local/lib NO_DEFAULT_PATH)
+FIND_LIBRARY(CPPKAFKA cppkafka /usr/local/lib NO_DEFAULT_PATH)
+
+link_libraries(${RDKAFKA} ${CPPKAFKA})
 
 set( JETSTREAM_SOURCES
     src/Common.cc
@@ -15,6 +21,7 @@ set( JETSTREAM_SOURCES
     src/JetStreamConfig.cc
     src/ElasticsearchWriterConfig.cc
     src/LogzioWriterConfig.cc
+    src/LogglyWriterConfig.cc
     src/KubeLauncherConfig.cc
     src/KafkaProducer.cc
 )
