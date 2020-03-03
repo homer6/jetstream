@@ -141,10 +141,35 @@ All times are UTC unix time (epoch seconds with nanoseconds as decimals).
 ```
 { 
     "obtype": "event", 
+    "name": "request_received", 
     "arbitrary_value_1": "abc", 
     "arbitrary_value_2": [ "123", "456" ], 
     "arbitrary_value_3": { "ready": "player", "one": 1 }
 }
 ```
 
+
+
+## (Application) Exception
+
+```
+{ 
+    "obtype": "exception", 
+    "component": "worker", 
+    "name": "exception_processing_request", 
+    "description": "e.what()"
+}
+```
+
+
+## Error
+
+```
+{ 
+    "obtype": "error", 
+    "component": "worker", 
+    "name": "error_processing_request", 
+    "description": "Failed to parse request."
+}
+```
 
