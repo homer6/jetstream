@@ -82,7 +82,7 @@ static void signal_handler_reload_config( int sig ){
 namespace jetstream{
 
 	JetStream::JetStream()
-		:run(true), current_version("0.1.0")
+		:run(true), current_version("0.2.0")
 	{
 
 
@@ -362,8 +362,6 @@ namespace jetstream{
             }
 
             const string this_token = config.getConfigSetting( "destination_token" );
-
-            cout << "token: " << this_token << endl;
 
 			if( this_token == "TOKEN" || this_token == "" ){
 				cout << "Error: Loggly token is required." << endl;
