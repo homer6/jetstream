@@ -110,7 +110,7 @@ namespace jetstream{
     void JetStream::printHelp(){
 
 		const char *help_message = 
-"usage: jetstream [--version] [--help] <command> [<args>]\n"
+"usage: jetstream [--version] [--help] [--dry-run] <command> [<args>]\n"
 "\n"
 "These are common jetstream commands used in various situations:\n"
 "\n"
@@ -306,6 +306,11 @@ namespace jetstream{
                 return return_code;
             }
 
+            if( config.dry_run ){
+            	config.print();
+            	return 0;
+            }
+
             this->runElasticsearchWriter( config );
 
             return 0;
@@ -333,6 +338,11 @@ namespace jetstream{
 				return -1;
 			}
 
+            if( config.dry_run ){
+            	config.print();
+            	return 0;
+            }
+
 			this->runLogzioWriter( config );
 
     		return 0;
@@ -353,11 +363,18 @@ namespace jetstream{
 
             const string this_token = config.getConfigSetting( "destination_token" );
 
+            cout << "token: " << this_token << endl;
+
 			if( this_token == "TOKEN" || this_token == "" ){
 				cout << "Error: Loggly token is required." << endl;
 				this->printHelpLoggly();
 				return -1;
 			}
+
+            if( config.dry_run ){
+            	config.print();
+            	return 0;
+            }
 
 			this->runLogglyWriter( config );
 
@@ -395,6 +412,11 @@ namespace jetstream{
 
             const string subcommand = additional_arguments[0];
             config.setConfigSetting( "subcommand", subcommand );
+
+            if( config.dry_run ){
+            	config.print();
+            	return 0;
+            }
 
             this->runKube( config );
 

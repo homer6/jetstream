@@ -61,6 +61,17 @@ namespace jetstream{
    	}
 
 
+   	void JetStreamConfig::print(){
+
+   		for( const auto& config_setting_pair : this->getConfigSettings() ){
+
+   			cout << config_setting_pair.first << ": " << config_setting_pair.second << endl;
+
+   		}
+
+
+   	}
+
 
 
    	int JetStreamConfig::loadCommandLineArguments(){
@@ -75,6 +86,7 @@ namespace jetstream{
 
 			string current_argument = this->jetstream->command_line_arguments[ current_argument_offset ];
 
+
 			if( current_argument == "--topic" || current_argument == "--topics" || current_argument == "-t" ){
 
 				current_argument_offset++;
@@ -85,10 +97,6 @@ namespace jetstream{
 				this->setConfigSetting( "topic", this->jetstream->command_line_arguments[ current_argument_offset ] );
 
 				current_argument_offset++;
-				if( current_argument_offset >= argc ){
-					this->printHelp();
-					return -1;
-				}
 				continue;
 
 			}
@@ -104,10 +112,6 @@ namespace jetstream{
                 this->setConfigSetting( "brokers", this->jetstream->command_line_arguments[ current_argument_offset ] );
 
 				current_argument_offset++;
-				if( current_argument_offset >= argc ){
-					this->printHelp();
-					return -1;
-				}
 				continue;
 
 			}
@@ -123,10 +127,6 @@ namespace jetstream{
                 this->setConfigSetting( "consumer_group", this->jetstream->command_line_arguments[ current_argument_offset ] );
 
 				current_argument_offset++;
-				if( current_argument_offset >= argc ){
-					this->printHelp();
-					return -1;
-				}
 				continue;
 
 			}
@@ -142,10 +142,6 @@ namespace jetstream{
                 this->setConfigSetting( "product_code", this->jetstream->command_line_arguments[ current_argument_offset ] );
 
 				current_argument_offset++;
-				if( current_argument_offset >= argc ){
-					this->printHelp();
-					return -1;
-				}
 				continue;
 
 			}
@@ -161,10 +157,6 @@ namespace jetstream{
                 this->setConfigSetting( "hostname", this->jetstream->command_line_arguments[ current_argument_offset ] );
 
 				current_argument_offset++;
-				if( current_argument_offset >= argc ){
-					this->printHelp();
-					return -1;
-				}
 				continue;
 
 			}
@@ -181,10 +173,6 @@ namespace jetstream{
 				this->setConfigSetting( "destination_hostname", this->jetstream->command_line_arguments[ current_argument_offset ] );
 
 				current_argument_offset++;
-				if( current_argument_offset >= argc ){
-					this->printHelp();
-					return -1;
-				}
 				continue;
 
 			}
@@ -201,10 +189,6 @@ namespace jetstream{
                 this->setConfigSetting( "destination_username", this->jetstream->command_line_arguments[ current_argument_offset ] );
 
 				current_argument_offset++;
-				if( current_argument_offset >= argc ){
-					this->printHelp();
-					return -1;
-				}
 				continue;
 
 			}
@@ -221,10 +205,6 @@ namespace jetstream{
                 this->setConfigSetting( "destination_password", this->jetstream->command_line_arguments[ current_argument_offset ] );
 
 				current_argument_offset++;
-				if( current_argument_offset >= argc ){
-					this->printHelp();
-					return -1;
-				}
 				continue;
 
 			}
@@ -240,10 +220,6 @@ namespace jetstream{
                 this->setConfigSetting( "destination_index", this->jetstream->command_line_arguments[ current_argument_offset ] );
 
 				current_argument_offset++;
-				if( current_argument_offset >= argc ){
-					this->printHelp();
-					return -1;
-				}
 				continue;
 
 			}
@@ -259,10 +235,21 @@ namespace jetstream{
                 this->setConfigSetting( "destination_secure", this->jetstream->command_line_arguments[ current_argument_offset ] );
 
 				current_argument_offset++;
+				continue;
+
+			}
+
+
+			if( current_argument == "--token" ){
+
+				current_argument_offset++;
 				if( current_argument_offset >= argc ){
 					this->printHelp();
 					return -1;
 				}
+                this->setConfigSetting( "destination_token", this->jetstream->command_line_arguments[ current_argument_offset ] );
+
+				current_argument_offset++;
 				continue;
 
 			}
@@ -278,10 +265,6 @@ namespace jetstream{
                 this->setConfigSetting( "prom_hostname", this->jetstream->command_line_arguments[ current_argument_offset ] );
 
                 current_argument_offset++;
-                if( current_argument_offset >= argc ){
-                    this->printHelp();
-                    return -1;
-                }
                 continue;
 
             }
@@ -297,10 +280,15 @@ namespace jetstream{
                 this->setConfigSetting( "prom_secure", this->jetstream->command_line_arguments[ current_argument_offset ] );
 
 				current_argument_offset++;
-				if( current_argument_offset >= argc ){
-					this->printHelp();
-					return -1;
-				}
+				continue;
+
+			}
+
+
+			if( current_argument == "--dry-run" ){
+
+				current_argument_offset++;
+                this->dry_run = true;
 				continue;
 
 			}
@@ -317,12 +305,20 @@ namespace jetstream{
    	}
 
 
+   	map<string,string> JetStreamConfig::getConfigSettings() const{
+
+   		return this->config_settings;
+
+   	}
+
 
    	vector<string> JetStreamConfig::getAdditionalArguments() const{
 
    		return this->additional_arguments;
 
    	}
+
+
 
 
 }
