@@ -49,7 +49,7 @@ docker run -d \
     --env JETSTREAM_PRODUCT_CODE=prd4096 \
     --env JETSTREAM_HOSTNAME=my.hostname.com \
     \
-    --env JETSTREAM_LOGZIO_TOKEN=my_logz_token \
+    --env JETSTREAM_DESTINATION_TOKEN=my_logz_token \
     \
     homer6/jetstream:latest logzio
 ```
@@ -65,8 +65,10 @@ docker run -d \
 
 ```
 
+apt install g++ cmake
+
 ### Install librdkafka
-apt install libssl-dev libboost-all-dev libsasl2-dev liblz4-dev libzstd-dev
+apt install -y libssl-dev libboost-all-dev libsasl2-dev liblz4-dev libzstd-dev
 git clone https://github.com/edenhill/librdkafka.git
 cd librdkafka
 git checkout e241df750a4785f66947df29999d9a2ac1313042
@@ -77,7 +79,7 @@ ldconfig
 cd ..
 
 
-### Update cmake to a later version for cppkafka
+### Update cmake to a later version for cppkafka (if cmake is old)
 sudo apt remove --purge --auto-remove cmake
 version=3.16
 build=2
@@ -97,7 +99,7 @@ git clone https://github.com/mfontanini/cppkafka.git
 cd cppkafka
 git checkout 7d097df34dd678c4dfdc1ad07027af13f5635863
 cmake .
-make
+make -j$(nproc)
 make install
 ldconfig
 cd ..
@@ -107,7 +109,7 @@ cd ..
 git clone https://github.com/homer6/jetstream.git
 cd jetstream
 cmake .
-make
+make -j$(nproc)
 cd ..
 
 docker build .
