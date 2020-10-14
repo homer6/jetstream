@@ -56,5 +56,6 @@ ENV JETSTREAM_HOSTNAME my.sample.hostname
 
 
 # for runtime
-ENTRYPOINT [ "logport", "adopt", "jetstream" ]
-CMD [ "elasticsearch" ]
+# ENTRYPOINT [ "logport", "adopt", "jetstream" ]
+# CMD [ "elasticsearch" ]
+CMD [ "/bin/sh" ]

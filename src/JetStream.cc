@@ -1179,6 +1179,11 @@ namespace jetstream{
 					    if( batch_payload.size() ){
 
 			        		try{
+
+			        			if( this->log_level == 1 ){
+			        				cout << batch_payload << endl;
+			        			}
+
 		        				
 		        				std::shared_ptr<httplib::Response> es_response = http_client.Post( post_path.c_str(), request_headers, batch_payload, "application/json" );
 

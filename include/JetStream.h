@@ -81,6 +81,8 @@ namespace jetstream{
 
 	     	vector<string> additional_arguments;
 	     	map<string,string> environment_variables;
+
+	     	int log_level = 0;
     	
 
 	};
