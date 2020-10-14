@@ -3,7 +3,7 @@ Kafka swiss army knife.
 
 Logport empowers application developers and system administrators with modern observability. This is a turn-key solution for stable, performant, and scalable introspection into what your applications are doing, right now.
 
-[Logport](https://github.com/homer6/logport) watches log files and sends changes to kafka (one line per message). Logport enables your applications to easily produce observability types (obtypes): Metrics, application Events, Telemetry, Traces, and Logs (METTL). Once in Kafka, [Jetstream](https://github.com/homer6/jetstream) can ship your obtypes to compatible "heads" (indices or dashboards) such as Elasticsearch, Logz.io, Snowflake, Lightstep, S3, or Prometheus.
+[Logport](https://github.com/homer6/logport) watches log files and sends changes to kafka (one line per message). Logport enables your applications to easily produce observability types (obtypes): Metrics, application Events, Telemetry, Traces, and Logs (METTL). Once in Kafka, [Jetstream](https://github.com/homer6/jetstream) can ship your obtypes to compatible "heads" (indices or dashboards) such as Elasticsearch, Logz.io, or Loggly.
 
 See the [Getting Started Guides](https://github.com/homer6/jetstream/tree/master/docs) to jump right in.
 
@@ -29,8 +29,8 @@ docker push homer6/jetstream:latest
 
 ## Running with docker
 ```
-# logz.io
-# the topic that jetstream is watching's logs will go to logz.io from JETSTREAM_TOPIC(my_logs)
+# loggly
+# the topic that jetstream is watching's logs will go to loggly from JETSTREAM_TOPIC(my_logs)
 # jestream uses logport to ship it's own logs
 # jetstream's logs will go to LOGPORT_TOPIC(my_logs_logger)
 # jetstream's logs cannot go to the topic it is consumer (ie. the two values above cannot be the same or it'll create a feedback loop) 
@@ -49,9 +49,9 @@ docker run -d \
     --env JETSTREAM_PRODUCT_CODE=prd4096 \
     --env JETSTREAM_HOSTNAME=my.hostname.com \
     \
-    --env JETSTREAM_DESTINATION_TOKEN=my_logz_token \
+    --env JETSTREAM_DESTINATION_TOKEN=my_loggly_token \
     \
-    homer6/jetstream:latest logzio
+    homer6/jetstream:latest loggly
 ```
 
 ## Running on prem
@@ -65,7 +65,7 @@ docker run -d \
 
 ```
 
-apt install g++ cmake
+apt install -y g++ cmake
 
 ### Install librdkafka
 apt install -y libssl-dev libboost-all-dev libsasl2-dev liblz4-dev libzstd-dev
@@ -81,8 +81,8 @@ cd ..
 
 ### Update cmake to a later version for cppkafka (if cmake is old)
 sudo apt remove --purge --auto-remove cmake
-version=3.16
-build=2
+export version=3.16
+export build=2
 mkdir ~/temp
 cd ~/temp
 wget https://cmake.org/files/v$version/cmake-$version.$build.tar.gz
