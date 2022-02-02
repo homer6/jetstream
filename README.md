@@ -64,37 +64,23 @@ docker run -d \
 ## Building
 
 ```
-
 apt install -y g++ cmake
+```
 
 ### Install librdkafka
+```
 apt install -y libssl-dev libboost-all-dev libsasl2-dev liblz4-dev libzstd-dev
 git clone https://github.com/edenhill/librdkafka.git
 cd librdkafka
-git checkout e241df750a4785f66947df29999d9a2ac1313042
-./configure --install-deps
-make
-make install
-ldconfig
-cd ..
-
-
-### Update cmake to a later version for cppkafka (if cmake is old)
-sudo apt remove --purge --auto-remove cmake
-export version=3.16
-export build=2
-mkdir ~/temp
-cd ~/temp
-wget https://cmake.org/files/v$version/cmake-$version.$build.tar.gz
-tar -xzvf cmake-$version.$build.tar.gz
-cd cmake-$version.$build/
-./bootstrap
+sudo ./configure --install-deps
 make -j$(nproc)
 sudo make install
-hash -r
-
+sudo ldconfig
+cd ..
+```
 
 ### install cppkafka
+```
 git clone https://github.com/mfontanini/cppkafka.git
 cd cppkafka
 git checkout 7d097df34dd678c4dfdc1ad07027af13f5635863
@@ -103,15 +89,19 @@ make -j$(nproc)
 make install
 ldconfig
 cd ..
-
+```
 
 ### make jetstream
+```
 git clone https://github.com/homer6/jetstream.git
 cd jetstream
 cmake .
 make -j$(nproc)
 cd ..
+```
 
+### make jetstream docker image (optional)
+```
 docker build .
 ```
 

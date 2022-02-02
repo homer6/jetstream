@@ -1,5 +1,4 @@
-#ifndef JETSTREAM_COMMON_H
-#define JETSTREAM_COMMON_H
+#pragma once
 
 #include <string>
 using std::string;
@@ -76,7 +75,3 @@ namespace jetstream{
 
 }
 
-
-
-
-#endif //JETSTREAM_COMMON_H

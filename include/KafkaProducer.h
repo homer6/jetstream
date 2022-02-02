@@ -1,5 +1,4 @@
-#ifndef JETSTREAM_KAFKA_PRODUCER_H
-#define JETSTREAM_KAFKA_PRODUCER_H
+#pragma once
 
 #include <string>
 using std::string;
@@ -40,5 +39,3 @@ namespace jetstream{
 
 }
 
-
-#endif //JETSTREAM_KAFKA_PRODUCER_H

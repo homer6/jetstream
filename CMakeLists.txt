@@ -18,11 +18,13 @@ set( JETSTREAM_SOURCES
     src/Common.cc
     src/Observer.cc
     src/JetStream.cc
-    src/JetStreamConfig.cc
-    src/ElasticsearchWriterConfig.cc
-    src/LogzioWriterConfig.cc
-    src/LogglyWriterConfig.cc
-    src/KubeLauncherConfig.cc
+    src/config/JetStreamConfig.cc
+    src/config/ElasticSearchWriterConfig.cc
+    src/config/LogglyWriterConfig.cc
+    src/config/KubeWriterConfig.cc
+    src/writer/ElasticSearchWriter.cc
+    src/writer/LogglyWriter.cc
+    src/writer/KubeWriter.cc
     src/KafkaProducer.cc
 )
 

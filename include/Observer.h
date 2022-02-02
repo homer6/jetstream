@@ -1,5 +1,4 @@
-#ifndef JETSTREAM_OBSERVER_H
-#define JETSTREAM_OBSERVER_H
+#pragma once
 
 #include <string>
 using std::string;
@@ -38,7 +37,3 @@ namespace jetstream{
 
 }
 
-
-
-
-#endif //JETSTREAM_OBSERVER_H

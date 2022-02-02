@@ -1,5 +1,4 @@
-#ifndef JETSTREAM_JETSTREAM_H
-#define JETSTREAM_JETSTREAM_H
+#pragma once
 
 #include <string>
 using std::string;
@@ -20,21 +19,16 @@ namespace jetstream{
 
 	class Inspector;
 
-	class JetStreamConfig;
-
+    namespace config{
+        class JetStreamConfig;
+    }
+    using config::JetStreamConfig;
 
 	class JetStream{
 
 	    public:
-	    	JetStream();
-	    	~JetStream();
-	        
 	        void printHelp();
 	        void printVersion();
-	        void printHelpElasticsearch();
-	        void printHelpLogzio();
-	        void printHelpLoggly();
-	        void printHelpKube();
 
 	        int runFromCommandLine( int argc, char **argv );
 	        void registerSignalHandlers();
@@ -61,23 +55,13 @@ namespace jetstream{
 	        string getDefaultPrometheusPushGatewayHostname();
 	        string getDefaultPrometheusPushGatewaySecure();
 
-	        void runElasticsearchWriter( JetStreamConfig& config );
-	        void runLogzioWriter( JetStreamConfig& config );
-	        void runLogglyWriter( JetStreamConfig& config );
-
-	        void runKube( JetStreamConfig& config );
-
-
-
-
-
-	     	bool run;
+	     	bool keep_running = true;
 
 	    	Observer observer;
 
 	     	string command;
 	     	vector<string> command_line_arguments;
-	     	string current_version;
+	     	string current_version = "0.2.0";
 
 	     	vector<string> additional_arguments;
 	     	map<string,string> environment_variables;
@@ -90,6 +74,3 @@ namespace jetstream{
 }
 
 
-
-
-#endif //JETSTREAM_JETSTREAM_H
