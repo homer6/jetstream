@@ -26,6 +26,8 @@ set( JETSTREAM_SOURCES
     src/writer/LogglyWriter.cc
     src/writer/KubeWriter.cc
     src/KafkaProducer.cc
+    src/Url.cc
+    src/UrlList.cc
 )
 
 set( JETSTREAM_LIBS
