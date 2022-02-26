@@ -31,8 +31,8 @@ set( JETSTREAM_SOURCES
     src/writer/S3Writer.cc
 
     src/client/S3Client.cc
-
-        src/client/KafkaProducer.cc
+    src/client/KafkaProducer.cc
+    src/client/HttpConnection.cc
 
     src/Url.cc
     src/UrlList.cc
