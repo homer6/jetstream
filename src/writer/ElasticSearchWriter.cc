@@ -10,8 +10,6 @@ using std::endl;
 #include <unistd.h>
 #include <signal.h>
 
-#include "KafkaProducer.h"
-
 #include <cstdio>
 #include <stdexcept>
 #include <memory>

@@ -18,14 +18,22 @@ set( JETSTREAM_SOURCES
     src/Common.cc
     src/Observer.cc
     src/JetStream.cc
+
     src/config/JetStreamConfig.cc
     src/config/ElasticSearchWriterConfig.cc
     src/config/LogglyWriterConfig.cc
     src/config/KubeWriterConfig.cc
+    src/config/S3WriterConfig.cc
+
     src/writer/ElasticSearchWriter.cc
     src/writer/LogglyWriter.cc
     src/writer/KubeWriter.cc
-    src/KafkaProducer.cc
+    src/writer/S3Writer.cc
+
+    src/client/S3Client.cc
+
+        src/client/KafkaProducer.cc
+
     src/Url.cc
     src/UrlList.cc
 )

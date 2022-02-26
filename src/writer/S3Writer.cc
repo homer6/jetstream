@@ -1,4 +1,4 @@
-#include "writer/LogglyWriter.h"
+#include "writer/S3Writer.h"
 
 
 #include <iostream>
@@ -46,14 +46,14 @@ using std::map;
 namespace jetstream{
 namespace writer{
 
-    LogglyWriter::LogglyWriter( const ::jetstream::config::LogglyWriterConfig& config )
+    S3Writer::S3Writer( const ::jetstream::config::S3WriterConfig& config )
         :config(config)
     {
 
     }
 
 
-	void LogglyWriter::run( const bool& keep_running ){
+	void S3Writer::run( const bool& keep_running ){
 
 		//setup kafka consumer
 
@@ -88,17 +88,17 @@ namespace writer{
 			    kafka_consumer.subscribe( { config.getConfigSetting("topic") } );
 
 
-		// connect to loggly
+		// connect to s3
 
 			int destination_port = 443;
-			string destination_hostname_host = "logs-01.loggly.com";
+			string destination_hostname_host = "logs-01.s3.com";
 
 			httplib::SSLClient http_client( destination_hostname_host.c_str(), destination_port );
 
 			const string post_path = "/bulk/" + config.getConfigSetting("destination_token") + "/tag/bulk/";
 
 			httplib::Headers request_headers{
-				{ "Host", "logs-01.loggly.com" },
+				{ "Host", "logs-01.s3.com" },
 				{ "User-Agent", "jetstream" }
 			};
 
@@ -207,7 +207,7 @@ namespace writer{
 
 			                }catch( const std::exception& e ){
 
-			                	cerr << "JetStream: failed to send log lines to loggly: " + string(e.what()) << endl;
+			                	cerr << "JetStream: failed to send log lines to s3: " + string(e.what()) << endl;
 
 			                }
 
@@ -221,7 +221,7 @@ namespace writer{
 
 				}catch( std::exception &e ){
 
-					cerr << "JetStream: general exception caught with loggly writer: " + string(e.what()) << endl;
+					cerr << "JetStream: general exception caught with s3 writer: " + string(e.what()) << endl;
 
 				}
 

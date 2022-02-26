@@ -9,7 +9,7 @@ using std::endl;
 #include <unistd.h>
 #include <signal.h>
 
-#include "KafkaProducer.h"
+#include "client/KafkaProducer.h"
 
 #include <cstdio>
 #include <stdexcept>
@@ -45,10 +45,12 @@ using std::map;
 #include "config/ElasticSearchWriterConfig.h"
 #include "config/LogglyWriterConfig.h"
 #include "config/KubeWriterConfig.h"
+#include "config/S3WriterConfig.h"
 
 #include "writer/ElasticSearchWriter.h"
 #include "writer/LogglyWriter.h"
 #include "writer/KubeWriter.h"
+#include "writer/S3Writer.h"
 
 
 extern char **environ;
@@ -221,6 +223,48 @@ namespace jetstream{
     	}
 
 
+    	if( this->command == "s3" ){
+
+            config::S3WriterConfig config( this );
+
+            int return_code = config.loadCommandLineArguments();
+
+            if( return_code != 0 ){
+                return return_code;
+            }
+
+            const string this_bucket = config.getConfigSetting( "destination_bucket" );
+			if( this_bucket == "BUCKET" || this_bucket == "" ){
+				cout << "Error: S3 bucket is required." << endl;
+				config.printHelp();
+				return -1;
+			}
+
+            const string this_access_key_id = config.getConfigSetting( "destination_access_key_id" );
+			if( this_access_key_id == "" ){
+				cout << "Error: S3 Access Key ID is required." << endl;
+				config.printHelp();
+				return -1;
+			}
+
+            const string this_secret_access_key = config.getConfigSetting( "destination_secret_access_key" );
+			if( this_secret_access_key == "" ){
+				cout << "Error: S3 Secret Access Key is required." << endl;
+				config.printHelp();
+				return -1;
+			}
+
+            if( config.dry_run ){
+            	config.print();
+            	return 0;
+            }
+
+            writer::S3Writer s3_writer( config );
+            s3_writer.run( this->keep_running );
+
+    		return 0;
+
+    	}
 
 
 
@@ -416,6 +460,42 @@ namespace jetstream{
 		}
 
 		return "TOKEN";
+
+	}
+
+
+	string JetStream::getDefaultBucket(){
+
+		string default_bucket = this->getEnvironmentVariable( "JETSTREAM_BUCKET" );
+		if( default_bucket.size() > 0 ){
+			return default_bucket;
+		}
+
+		return "BUCKET";
+
+	}
+
+
+	string JetStream::getDefaultAccessKeyId(){
+
+		string default_value = this->getEnvironmentVariable( "JETSTREAM_ACCESS_KEY_ID" );
+		if( default_value.size() > 0 ){
+			return default_value;
+		}
+
+		return "";
+
+	}
+
+
+	string JetStream::getDefaultSecretAccessKey(){
+
+		string default_value = this->getEnvironmentVariable( "JETSTREAM_SECRET_ACCESS_KEY" );
+		if( default_value.size() > 0 ){
+			return default_value;
+		}
+
+		return "";
 
 	}
 

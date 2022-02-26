@@ -11,24 +11,29 @@ using std::endl;
 namespace jetstream{
 namespace config {
 
-    JetStreamConfig::JetStreamConfig(JetStream *jetstream)
-            : jetstream(jetstream) {
+    JetStreamConfig::JetStreamConfig( JetStream *jetstream )
+        :jetstream(jetstream)
+    {
 
-        this->setConfigSetting("brokers", this->jetstream->getDefaultBrokers());
-        this->setConfigSetting("consumer_group", this->jetstream->getDefaultConsumerGroup());
-        this->setConfigSetting("topic", this->jetstream->getDefaultTopic());
-        this->setConfigSetting("product_code", this->jetstream->getDefaultProductCode());
-        this->setConfigSetting("hostname", this->jetstream->getDefaultHostname());
+        this->setConfigSetting( "brokers", this->jetstream->getDefaultBrokers() );
+        this->setConfigSetting( "consumer_group", this->jetstream->getDefaultConsumerGroup() );
+        this->setConfigSetting( "topic", this->jetstream->getDefaultTopic() );
+        this->setConfigSetting( "product_code", this->jetstream->getDefaultProductCode() );
+        this->setConfigSetting( "hostname", this->jetstream->getDefaultHostname() );
 
-        this->setConfigSetting("destination_hostname", this->jetstream->getDefaultDestinationHostname());
-        this->setConfigSetting("destination_username", this->jetstream->getDefaultDestinationUsername());
-        this->setConfigSetting("destination_password", this->jetstream->getDefaultDestinationPassword());
-        this->setConfigSetting("destination_index", this->jetstream->getDefaultDestinationIndex());
-        this->setConfigSetting("destination_secure", this->jetstream->getDefaultDestinationSecure());
-        this->setConfigSetting("destination_token", this->jetstream->getDefaultDestinationToken());
+        this->setConfigSetting( "destination_hostname", this->jetstream->getDefaultDestinationHostname() );
+        this->setConfigSetting( "destination_username", this->jetstream->getDefaultDestinationUsername() );
+        this->setConfigSetting( "destination_password", this->jetstream->getDefaultDestinationPassword() );
+        this->setConfigSetting( "destination_index", this->jetstream->getDefaultDestinationIndex() );
+        this->setConfigSetting( "destination_secure", this->jetstream->getDefaultDestinationSecure() );
+        this->setConfigSetting( "destination_token", this->jetstream->getDefaultDestinationToken() );
 
-        this->setConfigSetting("prom_hostname", this->jetstream->getDefaultPrometheusPushGatewayHostname());
-        this->setConfigSetting("prom_secure", this->jetstream->getDefaultPrometheusPushGatewaySecure());
+        this->setConfigSetting( "destination_bucket", this->jetstream->getDefaultBucket() );
+        this->setConfigSetting( "destination_access_key_id", this->jetstream->getDefaultAccessKeyId() );
+        this->setConfigSetting( "destination_secret_access_key", this->jetstream->getDefaultSecretAccessKey() );
+
+        this->setConfigSetting( "prom_hostname", this->jetstream->getDefaultPrometheusPushGatewayHostname() );
+        this->setConfigSetting( "prom_secure", this->jetstream->getDefaultPrometheusPushGatewaySecure() );
 
     }
 
