@@ -1,5 +1,7 @@
 #include "writer/ElasticSearchWriter.h"
 
+#include "client/HttpConnection.h"
+using jetstream::client::HttpConnection;
 
 #include <iostream>
 #include <iomanip>
@@ -32,8 +34,6 @@ using std::endl;
 using json = nlohmann::json;
 
 #include <cppkafka/cppkafka.h>
-
-#include <httplib.h>
 
 #include <chrono>
 
@@ -90,41 +90,17 @@ namespace writer{
 
 
 		// connect to elasticsearch
-
-			int destination_port = 9200;
-            const string destination_hostname = config.getConfigSetting( "destination_hostname" );
-            const string destination_secure = config.getConfigSetting( "destination_secure" );
-			string destination_hostname_host;
-
-			vector<string> hostname_parts = jetstream::split_string( destination_hostname, ':' );
-			if( hostname_parts.size() == 2 ){
-				destination_hostname_host = hostname_parts[0];
-				destination_port = std::stoi( hostname_parts[1] );
-			}else if( hostname_parts.size() == 1 ){
-				destination_hostname_host = hostname_parts[0];
-			}else{
-				throw std::runtime_error( "Unexpected elasticsearch target hostname: " + destination_hostname );
-			}
-
-			std::unique_ptr<httplib::Client> http_client;
-
-			if( destination_secure == "true" ){
-				http_client.reset( new httplib::SSLClient( destination_hostname_host.c_str(), destination_port ) );
-			}else{
-				http_client.reset( new httplib::Client( destination_hostname_host.c_str(), destination_port ) );
-			}
-
-			//int x = 0;
-
-
             const string destination_index = config.getConfigSetting( "destination_index" );
 			const string post_path = "/" + destination_index + "/_bulk";
 
+            string http_scheme = "https";
+            const string destination_hostname = config.getConfigSetting( "destination_hostname" );
+            const string destination_secure = config.getConfigSetting( "destination_secure" );
+            if( destination_secure == "false" ){
+                http_scheme = "http";
+            }
 
-
-		// connect to elasticsearch
-
-			//int x = 0;
+            HttpConnection http_connection( http_scheme + "://" + config.getConfigSetting("destination_hostname") + ":9200" + post_path );
 
 			httplib::Headers request_headers{
 				{ "Host", destination_hostname },
@@ -228,11 +204,13 @@ namespace writer{
 
 			        		try{
 
-		        				std::shared_ptr<httplib::Response> es_response = http_client->Post( post_path.c_str(), request_headers, batch_payload, "application/x-ndjson" );
+		        				httplib::Result es_result = http_connection.http_client->Post( http_connection.full_path_template.c_str(), request_headers, batch_payload, "application/x-ndjson" );
 
-		        				if( es_response ){
+		        				if( es_result ){
 
-			        				if( es_response->status >= 200 && es_response->status < 300 ){
+                                    const auto es_response = es_result.value();
+
+			        				if( es_response.status >= 200 && es_response.status < 300 ){
 
 										// Now commit the message (ack kafka)
 							            //kafka_consumer.commit(message);
@@ -242,11 +220,11 @@ namespace writer{
 			        					json bad_response_object = json::object();
 
 			        					bad_response_object["description"] = "Elasticsearch non-200 response.";
-			        					bad_response_object["body"] = es_response->body;
-			        					bad_response_object["status"] = es_response->status;
+			        					bad_response_object["body"] = es_response.body;
+			        					bad_response_object["status"] = es_response.status;
 			        					bad_response_object["headers"] = json::object();
 
-			        					for( auto &header : es_response->headers ){
+			        					for( auto &header : es_response.headers ){
 			        						bad_response_object["headers"][header.first] = header.second;
 			        					}
 
@@ -256,7 +234,7 @@ namespace writer{
 
 		        				}else{
 
-		        					cerr << "No response object." << endl;
+		        					cerr << "Error: " << es_result.error() << endl;
 
 		        				}
 

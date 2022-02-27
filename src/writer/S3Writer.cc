@@ -1,5 +1,7 @@
 #include "writer/S3Writer.h"
 
+#include "client/HttpConnection.h"
+using jetstream::client::HttpConnection;
 
 #include <iostream>
 #include <iomanip>
@@ -32,8 +34,6 @@ using std::endl;
 using json = nlohmann::json;
 
 #include <cppkafka/cppkafka.h>
-
-#include <httplib.h>
 
 #include <chrono>
 
@@ -89,18 +89,29 @@ namespace writer{
 
 
 		// connect to s3
+            const string destination_index = config.getConfigSetting( "destination_index" );
+			const string post_path = "/" + destination_index + "/_bulk";
 
-			int destination_port = 443;
-			string destination_hostname_host = "logs-01.s3.com";
+            string http_scheme = "https";
+            const string destination_hostname = config.getConfigSetting( "destination_hostname" );
+            const string destination_secure = config.getConfigSetting( "destination_secure" );
+            if( destination_secure == "false" ){
+                http_scheme = "http";
+            }
 
-			httplib::SSLClient http_client( destination_hostname_host.c_str(), destination_port );
-
-			const string post_path = "/bulk/" + config.getConfigSetting("destination_token") + "/tag/bulk/";
+            HttpConnection http_connection( http_scheme + "://" + config.getConfigSetting("destination_hostname") + post_path );
 
 			httplib::Headers request_headers{
-				{ "Host", "logs-01.s3.com" },
+				{ "Host", destination_hostname },
 				{ "User-Agent", "jetstream" }
 			};
+
+            const string destination_username = config.getConfigSetting( "destination_username" );
+            const string destination_password = config.getConfigSetting( "destination_password" );
+			if( destination_username.size() ){
+				const string basic_auth_credentials = encodeBase64( destination_username + ":" + destination_password );
+				request_headers.insert( { "Authorization", "Basic " + basic_auth_credentials } );
+			}
 
 
 		// consume from kafka
@@ -173,11 +184,13 @@ namespace writer{
 
 			        		try{
 
-		        				std::shared_ptr<httplib::Response> es_response = http_client.Post( post_path.c_str(), request_headers, batch_payload, "application/json" );
+		        				httplib::Result es_result = http_connection.http_client->Post( http_connection.full_path_template.c_str(), request_headers, batch_payload, "application/json" );
 
-		        				if( es_response ){
+		        				if( es_result ){
 
-			        				if( es_response->status >= 200 && es_response->status < 300 ){
+                                    const auto es_response = es_result.value();
+
+			        				if( es_response.status >= 200 && es_response.status < 300 ){
 
 										// Now commit the message (ack kafka)
 							            //kafka_consumer.commit(message);
@@ -187,11 +200,11 @@ namespace writer{
 			        					json bad_response_object = json::object();
 
 			        					bad_response_object["description"] = "Loggly non-200 response.";
-			        					bad_response_object["body"] = es_response->body;
-			        					bad_response_object["status"] = es_response->status;
+			        					bad_response_object["body"] = es_response.body;
+			        					bad_response_object["status"] = es_response.status;
 			        					bad_response_object["headers"] = json::object();
 
-			        					for( auto &header : es_response->headers ){
+			        					for( auto &header : es_response.headers ){
 			        						bad_response_object["headers"][header.first] = header.second;
 			        					}
 
@@ -201,7 +214,7 @@ namespace writer{
 
 		        				}else{
 
-		        					cerr << "No response object." << endl;
+		        					cerr << "Error: " << es_result.error() << endl;
 
 		        				}
 

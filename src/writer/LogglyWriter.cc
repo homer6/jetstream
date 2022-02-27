@@ -1,5 +1,7 @@
 #include "writer/LogglyWriter.h"
 
+#include "client/HttpConnection.h"
+using jetstream::client::HttpConnection;
 
 #include <iostream>
 #include <iomanip>
@@ -32,8 +34,6 @@ using std::endl;
 using json = nlohmann::json;
 
 #include <cppkafka/cppkafka.h>
-
-#include <httplib.h>
 
 #include <chrono>
 
@@ -88,19 +88,21 @@ namespace writer{
 			    kafka_consumer.subscribe( { config.getConfigSetting("topic") } );
 
 
+
 		// connect to loggly
-
-			int destination_port = 443;
-			string destination_hostname_host = "logs-01.loggly.com";
-
-			httplib::SSLClient http_client( destination_hostname_host.c_str(), destination_port );
-
 			const string post_path = "/bulk/" + config.getConfigSetting("destination_token") + "/tag/bulk/";
 
+            string http_scheme = "https";
+            const string destination_hostname = "logs-01.loggly.com";
+
+            HttpConnection http_connection( http_scheme + "://" + destination_hostname + post_path );
+
 			httplib::Headers request_headers{
-				{ "Host", "logs-01.loggly.com" },
+				{ "Host", destination_hostname },
 				{ "User-Agent", "jetstream" }
 			};
+
+
 
 
 		// consume from kafka
@@ -173,11 +175,13 @@ namespace writer{
 
 			        		try{
 
-		        				std::shared_ptr<httplib::Response> es_response = http_client.Post( post_path.c_str(), request_headers, batch_payload, "application/json" );
+		        				httplib::Result es_result = http_connection.http_client->Post( http_connection.full_path_template.c_str(), request_headers, batch_payload, "application/json" );
 
-		        				if( es_response ){
+		        				if( es_result ){
 
-			        				if( es_response->status >= 200 && es_response->status < 300 ){
+                                    const auto es_response = es_result.value();
+
+			        				if( es_response.status >= 200 && es_response.status < 300 ){
 
 										// Now commit the message (ack kafka)
 							            //kafka_consumer.commit(message);
@@ -187,11 +191,11 @@ namespace writer{
 			        					json bad_response_object = json::object();
 
 			        					bad_response_object["description"] = "Loggly non-200 response.";
-			        					bad_response_object["body"] = es_response->body;
-			        					bad_response_object["status"] = es_response->status;
+			        					bad_response_object["body"] = es_response.body;
+			        					bad_response_object["status"] = es_response.status;
 			        					bad_response_object["headers"] = json::object();
 
-			        					for( auto &header : es_response->headers ){
+			        					for( auto &header : es_response.headers ){
 			        						bad_response_object["headers"][header.first] = header.second;
 			        					}
 
@@ -201,7 +205,7 @@ namespace writer{
 
 		        				}else{
 
-		        					cerr << "No response object." << endl;
+		        					cerr << "Error: " << es_result.error() << endl;
 
 		        				}
 
