@@ -9,6 +9,7 @@ namespace jetstream{
 
     class Observer;
 
+namespace client{
 
     /*
         Produces messages to kafka.
@@ -32,10 +33,10 @@ namespace jetstream{
 
             rd_kafka_t *rk;             /* Producer instance handle */
             rd_kafka_topic_t *rkt;      /* Topic object */
-            
+
             char errstr[512];           /* librdkafka API error reporting buffer */
 
     };
 
 }
-
+}

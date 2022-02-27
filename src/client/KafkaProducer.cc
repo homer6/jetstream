@@ -1,6 +1,8 @@
 #include "client/KafkaProducer.h"
 
 #include "Observer.h"
+using ::jetstream::Observer;
+
 #include "Common.h"
 
 
@@ -58,9 +60,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-
-
 namespace jetstream{
+namespace client{
 
 
     /**
@@ -103,7 +104,7 @@ namespace jetstream{
         /*
          * Create Kafka client configuration place-holder
          */
-        rd_kafka_conf_t *conf;      /* Temporary configuration object */ 
+        rd_kafka_conf_t *conf;      /* Temporary configuration object */
         conf = rd_kafka_conf_new();
 
         /* Set bootstrap broker(s) as a comma-separated list of
@@ -201,7 +202,7 @@ namespace jetstream{
          * See `rd_kafka_conf_set_dr_msg_cb` on how to setup a callback to be called
          * once the delivery status (success or failure) is known. The delivery report
          * is trigged by the application calling `rd_kafka_poll()` (at regular
-         * intervals) or `rd_kafka_flush()` (at termination). 
+         * intervals) or `rd_kafka_flush()` (at termination).
          *
          * Since producing is asynchronous, you should call `rd_kafka_flush()` before
          * you destroy the producer. Otherwise, any outstanding messages will be
@@ -231,14 +232,14 @@ namespace jetstream{
          *                           Messages are considered in-queue from the point they
          *                           are accepted by produce() until their corresponding
          *                           delivery report callback/event returns.
-         *                           It is thus a requirement to call 
+         *                           It is thus a requirement to call
          *                           rd_kafka_poll() (or equiv.) from a separate
          *                           thread when F_BLOCK is used.
          *                           See WARNING on \c RD_KAFKA_MSG_F_BLOCK above.
          *
          *    RD_KAFKA_MSG_F_FREE - rdkafka will free(3) \p payload when it is done
          *                          with it.
-         *    RD_KAFKA_MSG_F_COPY - the \p payload data will be copied and the 
+         *    RD_KAFKA_MSG_F_COPY - the \p payload data will be copied and the
          *                          \p payload pointer will not be used by rdkafka
          *                          after the call returns.
          *    RD_KAFKA_MSG_F_PARTITION - produce_batch() will honour per-message
@@ -359,4 +360,5 @@ namespace jetstream{
 
 
 
+}
 }
