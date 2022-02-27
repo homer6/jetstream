@@ -179,7 +179,7 @@ namespace writer{
 
 		        				if( es_result ){
 
-                                    const auto es_response = es_result.value();
+                                    const auto& es_response = es_result.value();
 
 			        				if( es_response.status >= 200 && es_response.status < 300 ){
 
