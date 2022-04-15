@@ -501,6 +501,30 @@ namespace jetstream{
 
 
 
+	string JetStream::getDefaultDestinationBrokers(){
+
+		string default_value = this->getEnvironmentVariable( "JETSTREAM_DESTINATION_BROKERS" );
+		if( default_value.size() > 0 ){
+			return default_value;
+		}
+
+		return "";
+
+	}
+
+
+	string JetStream::getDefaultDestinationTopic(){
+
+		string default_value = this->getEnvironmentVariable( "JETSTREAM_DESTINATION_TOPIC" );
+		if( default_value.size() > 0 ){
+			return default_value;
+		}
+
+		return "";
+
+	}
+
+
 
     string JetStream::getDefaultPrometheusPushGatewayHostname(){
 

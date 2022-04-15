@@ -32,6 +32,9 @@ namespace config {
         this->setConfigSetting( "destination_access_key_id", this->jetstream->getDefaultAccessKeyId() );
         this->setConfigSetting( "destination_secret_access_key", this->jetstream->getDefaultSecretAccessKey() );
 
+        this->setConfigSetting( "destination_brokers", this->jetstream->getDefaultDestinationBrokers() );
+        this->setConfigSetting( "destination_topic", this->jetstream->getDefaultDestinationTopic() );
+
         this->setConfigSetting( "prom_hostname", this->jetstream->getDefaultPrometheusPushGatewayHostname() );
         this->setConfigSetting( "prom_secure", this->jetstream->getDefaultPrometheusPushGatewaySecure() );
 
@@ -45,8 +48,8 @@ namespace config {
 
     string JetStreamConfig::getConfigSetting(const string &key) const {
 
-        if (this->config_settings.count(key)) {
-            const string &value = this->config_settings.at(key);
+        if( this->config_settings.count(key) ){
+            const string &value = this->config_settings.at( key );
             return value;
         }
 
@@ -58,7 +61,7 @@ namespace config {
     void JetStreamConfig::setConfigSetting(const string &key, const string &value) {
 
         if (key.size() == 0) {
-            throw std::runtime_error("Error: empty keys are not allowed.");
+            throw std::runtime_error( "Error: empty keys are not allowed." );
         }
 
         this->config_settings[key] = value;
@@ -128,8 +131,7 @@ namespace config {
                     this->printHelp();
                     return -1;
                 }
-                this->setConfigSetting("consumer_group",
-                                       this->jetstream->command_line_arguments[current_argument_offset]);
+                this->setConfigSetting("consumer_group", this->jetstream->command_line_arguments[current_argument_offset] );
 
                 current_argument_offset++;
                 continue;
@@ -144,8 +146,7 @@ namespace config {
                     this->printHelp();
                     return -1;
                 }
-                this->setConfigSetting("product_code",
-                                       this->jetstream->command_line_arguments[current_argument_offset]);
+                this->setConfigSetting( "product_code", this->jetstream->command_line_arguments[current_argument_offset] );
 
                 current_argument_offset++;
                 continue;
@@ -160,7 +161,7 @@ namespace config {
                     this->printHelp();
                     return -1;
                 }
-                this->setConfigSetting("hostname", this->jetstream->command_line_arguments[current_argument_offset]);
+                this->setConfigSetting( "hostname", this->jetstream->command_line_arguments[current_argument_offset] );
 
                 current_argument_offset++;
                 continue;
@@ -175,8 +176,7 @@ namespace config {
                     this->printHelp();
                     return -1;
                 }
-                this->setConfigSetting("destination_hostname",
-                                       this->jetstream->command_line_arguments[current_argument_offset]);
+                this->setConfigSetting( "destination_hostname", this->jetstream->command_line_arguments[current_argument_offset] );
 
                 current_argument_offset++;
                 continue;
@@ -191,8 +191,7 @@ namespace config {
                     this->printHelp();
                     return -1;
                 }
-                this->setConfigSetting("destination_username",
-                                       this->jetstream->command_line_arguments[current_argument_offset]);
+                this->setConfigSetting( "destination_username", this->jetstream->command_line_arguments[current_argument_offset] );
 
                 current_argument_offset++;
                 continue;
@@ -207,8 +206,7 @@ namespace config {
                     this->printHelp();
                     return -1;
                 }
-                this->setConfigSetting("destination_password",
-                                       this->jetstream->command_line_arguments[current_argument_offset]);
+                this->setConfigSetting( "destination_password", this->jetstream->command_line_arguments[current_argument_offset] );
 
                 current_argument_offset++;
                 continue;
@@ -223,8 +221,7 @@ namespace config {
                     this->printHelp();
                     return -1;
                 }
-                this->setConfigSetting("destination_index",
-                                       this->jetstream->command_line_arguments[current_argument_offset]);
+                this->setConfigSetting( "destination_index", this->jetstream->command_line_arguments[current_argument_offset] );
 
                 current_argument_offset++;
                 continue;
@@ -239,8 +236,7 @@ namespace config {
                     this->printHelp();
                     return -1;
                 }
-                this->setConfigSetting("destination_secure",
-                                       this->jetstream->command_line_arguments[current_argument_offset]);
+                this->setConfigSetting( "destination_secure", this->jetstream->command_line_arguments[current_argument_offset] );
 
                 current_argument_offset++;
                 continue;
@@ -255,8 +251,7 @@ namespace config {
                     this->printHelp();
                     return -1;
                 }
-                this->setConfigSetting("destination_token",
-                                       this->jetstream->command_line_arguments[current_argument_offset]);
+                this->setConfigSetting( "destination_token", this->jetstream->command_line_arguments[current_argument_offset] );
 
                 current_argument_offset++;
                 continue;
@@ -271,8 +266,7 @@ namespace config {
                     this->printHelp();
                     return -1;
                 }
-                this->setConfigSetting("prom_hostname",
-                                       this->jetstream->command_line_arguments[current_argument_offset]);
+                this->setConfigSetting( "prom_hostname", this->jetstream->command_line_arguments[current_argument_offset] );
 
                 current_argument_offset++;
                 continue;
@@ -287,7 +281,7 @@ namespace config {
                     this->printHelp();
                     return -1;
                 }
-                this->setConfigSetting("prom_secure", this->jetstream->command_line_arguments[current_argument_offset]);
+                this->setConfigSetting( "prom_secure", this->jetstream->command_line_arguments[current_argument_offset] );
 
                 current_argument_offset++;
                 continue;

@@ -54,6 +54,8 @@ namespace jetstream{
 	        string getDefaultBucket();
 	        string getDefaultAccessKeyId();
 	        string getDefaultSecretAccessKey();
+            string getDefaultDestinationBrokers();
+            string getDefaultDestinationTopic();
 
 	        string getDefaultPrometheusPushGatewayHostname();
 	        string getDefaultPrometheusPushGatewaySecure();
