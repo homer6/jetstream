@@ -42,6 +42,7 @@ set( JETSTREAM_SOURCES
     src/observability/prometheus/Metric.cc
     src/observability/prometheus/Registry.cc
 
+    src/stopwatch.cc
 )
 
 set( JETSTREAM_LIBS
