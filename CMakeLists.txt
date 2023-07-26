@@ -43,6 +43,7 @@ set( JETSTREAM_SOURCES
     src/observability/prometheus/Registry.cc
 
     src/stopwatch.cc
+    src/pugixml.cpp
 )
 
 set( JETSTREAM_LIBS
