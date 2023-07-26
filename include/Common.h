@@ -11,6 +11,9 @@ using std::string;
 #include <vector>
 using std::vector;
 
+#include <set>
+using std::set;
+
 #include <iostream>
 #include <iomanip>
 
@@ -22,7 +25,7 @@ namespace jetstream{
 
 	bool file_exists( const string& filename );
 
-	string get_file_contents( const string& filepath);
+	string get_file_contents( const string& filepath );
 
 	uint64_t get_file_size( const string& filepath );
 
@@ -33,9 +36,15 @@ namespace jetstream{
 
 
 	vector<string> split_string( const string& source, char delimiter );
+	string explode_string( const set<string>& source, char delimiter );
+	string explode_string( const vector<string>& source, char delimiter );
+    string strip_string( const string& source );
+    string replace_all_string( const string& source, const string& from, const string& to );
+    string to_lower_string( const string& source );
 
 
 	string escape_to_json_string( const string& unescaped_string );
+    string unescape_json_string( const string& escaped_string );
 
 
 	string encodeBase64( const string& binary_data );

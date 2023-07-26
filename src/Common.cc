@@ -32,6 +32,11 @@ using std::endl;
 #include <time.h>
 
 
+#include <algorithm>
+#include <cctype>
+
+
+
 namespace jetstream{
 
 
@@ -159,6 +164,108 @@ namespace jetstream{
 	}
 
 
+    string explode_string( const set<string>& source, char delimiter ){
+
+        size_t x = 0;
+        string returned;
+        for( const string& source_str : source ){
+            returned += source_str;
+            if( x == source.size() - 1 ){
+                //last item
+            }else{
+                returned += delimiter;
+            }
+            x++;
+        }
+
+        return returned;
+
+    }
+
+
+    string explode_string( const vector<string>& source, char delimiter ){
+
+        size_t x = 0;
+        string returned;
+        for( const string& source_str : source ){
+            returned += source_str;
+            if( x == source.size() - 1 ){
+                //last item
+            }else{
+                returned += delimiter;
+            }
+            x++;
+        }
+
+        return returned;
+
+    }
+
+
+
+    string strip_string( const string& source ){
+
+        if (source.length() == 0) {
+            return source;
+        }
+
+        string new_string = source;
+
+        auto start_it = new_string.begin();
+        auto end_it = new_string.rbegin();
+        while( std::isspace(*start_it) ){
+            ++start_it;
+            if( start_it == new_string.end() ) break;
+        }
+        while( std::isspace(*end_it) ){
+            ++end_it;
+            if (end_it == new_string.rend()) break;
+        }
+
+        int start_pos = start_it - new_string.begin();
+        int end_pos = end_it.base() - new_string.begin();
+        new_string = start_pos <= end_pos ? std::string(start_it, end_it.base()) : "";
+
+        return new_string;
+
+    }
+
+
+
+    string replace_all_string( const string& source, const string& from, const string& to ){
+
+        std::string new_string;
+        new_string.reserve(source.length());  // avoids a few memory allocations
+
+        std::string::size_type lastPos = 0;
+        std::string::size_type findPos;
+
+        while( std::string::npos != (findPos = source.find(from, lastPos)) ){
+            new_string.append(source, lastPos, findPos - lastPos);
+            new_string += to;
+            lastPos = findPos + from.length();
+        }
+
+        // Care for the rest after last occurrence
+        new_string += source.substr(lastPos);
+
+        return new_string;
+
+    }
+
+
+    string to_lower_string( const string& source ){
+
+        std::string new_string = source;
+        std::transform(new_string.begin(), new_string.end(), new_string.begin(), [](unsigned char c){
+            return std::tolower(c);
+        });
+        return new_string;
+
+    }
+
+
+
 
 	string get_executable_filepath( const string& relative_filepath ){
 	
@@ -234,6 +341,53 @@ namespace jetstream{
         return escaped_string;
 
     }
+
+    string unescape_json_string( const string& escaped_string ){
+
+        string unescaped_string;
+
+        const size_t escaped_size = escaped_string.size();
+        const size_t last_offset = escaped_size - 1;
+
+        if( escaped_size < 2 ) return escaped_string;
+
+        for( std::string::size_type x = 0; x < escaped_size; x++ ){
+
+            char current_character = escaped_string[x];
+
+            //the last character
+            if( x == last_offset ){
+                unescaped_string += current_character;
+                break;
+            }
+
+            char next_character = escaped_string[x + 1];
+
+            if( current_character == 92 ){ //backslash
+
+                switch( next_character ){
+                    case 'b': unescaped_string += 8; x++; break;          // \b is replaced with a backspace
+                    case 'f': unescaped_string += 12; x++; break;         // \f is replaced with a form feed
+                    case 'n': unescaped_string += 10; x++; break;         // \n is replaced with a newline
+                    case 'r': unescaped_string += 13; x++; break;         // \r is replaced with a carriage return
+                    case 't': unescaped_string += 9; x++; break;          // \t is replaced with a tab
+                    case '"': unescaped_string += 34; x++; break;         // \" is replaced with a "
+                    case 92: unescaped_string += 92; x++; break;          // \\ is replaced with a backslash
+                    default: unescaped_string += current_character;
+                };
+
+            }else{
+
+                unescaped_string += current_character;
+
+            }
+
+        }
+
+        return unescaped_string;
+
+    }
+
 
 
     string get_timestamp( const string format ){
