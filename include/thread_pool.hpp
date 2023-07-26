@@ -48,8 +48,8 @@ public:
      *
      * @param _thread_count The number of threads to use. The default value is the total number of hardware threads available, as reported by the implementation. With a hyperthreaded CPU, this will be twice the number of CPU cores. If the argument is zero, the default value will be used instead.
      */
-    thread_pool(const ui32 &_thread_count = std::thread::hardware_concurrency())
-        : thread_count(_thread_count ? _thread_count : std::thread::hardware_concurrency()), threads(new std::thread[_thread_count ? _thread_count : std::thread::hardware_concurrency()])
+    thread_pool(const ui32 &_thread_count = std::thread::hardware_concurrency(), const ui32 _max_tasks = 100 )
+            : thread_count(_thread_count ? _thread_count : std::thread::hardware_concurrency()), threads(new std::thread[_thread_count ? _thread_count : std::thread::hardware_concurrency()]), max_tasks(_max_tasks)
     {
         create_threads();
     }
@@ -108,6 +108,19 @@ public:
     {
         return thread_count;
     }
+
+
+    /**
+     * @brief Gets the max number of tasks that can be queued before more blocks
+     *
+     * @return Max number of tasks that can be queued.
+     */
+    ui32 get_max_tasks() const
+    {
+        return max_tasks;
+    }
+
+
 
     /**
      * @brief Parallelize a loop by splitting it into blocks, submitting each block separately to the thread pool, and waiting for all blocks to finish executing. The user supplies a loop function, which will be called once per block and should iterate over the block's range.
@@ -171,6 +184,12 @@ public:
     template <typename F>
     void push_task(const F &task)
     {
+
+        //block on max tasks
+        while( tasks_total > max_tasks ){
+            sleep_or_yield();
+        }
+
         tasks_total++;
         {
             const std::scoped_lock lock(queue_mutex);
@@ -316,7 +335,7 @@ public:
     /**
      * @brief The duration, in microseconds, that the worker function should sleep for when it cannot find any tasks in the queue. If set to 0, then instead of sleeping, the worker function will execute std::this_thread::yield() if there are no tasks in the queue. The default value is 1000.
      */
-    ui32 sleep_duration = 1000;
+    ui32 sleep_duration = 500;
 
 private:
     // ========================
@@ -429,6 +448,8 @@ private:
      * @brief An atomic variable to keep track of the total number of unfinished tasks - either still in the queue, or running in a thread.
      */
     std::atomic<ui32> tasks_total = 0;
+
+    const ui32 max_tasks = 100;
 };
 
 //                                     End class thread_pool                                     //
@@ -449,7 +470,7 @@ public:
      * @param _out_stream The output stream to print to. The default value is std::cout.
      */
     synced_stream(std::ostream &_out_stream = std::cout)
-        : out_stream(_out_stream){};
+            : out_stream(_out_stream){};
 
     /**
      * @brief Print any number of items into the output stream. Ensures that no other threads print to this stream simultaneously, as long as they all exclusively use this synced_stream object to print.
