@@ -36,7 +36,13 @@ set( JETSTREAM_SOURCES
 
     src/Url.cc
     src/UrlList.cc
-        src/writer/KafkaWriter.cc include/writer/KafkaWriter.h src/config/KafkaWriterConfig.cc include/config/KafkaWriterConfig.h)
+    src/writer/KafkaWriter.cc
+    src/config/KafkaWriterConfig.cc 
+
+    src/observability/prometheus/Metric.cc
+    src/observability/prometheus/Registry.cc
+
+)
 
 set( JETSTREAM_LIBS
     rdkafka
