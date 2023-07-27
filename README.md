@@ -2,7 +2,7 @@
 
 Jetstream is a general application framework in modern c++.
 
-It can:
+## Features
 
 1. Act as a persistent kafka producer/consumer
 1. HTTP -> Kafka
