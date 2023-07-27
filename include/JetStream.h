@@ -51,14 +51,20 @@ namespace jetstream{
 	        string getDefaultDestinationIndex();
 	        string getDefaultDestinationSecure();
 	        string getDefaultDestinationToken();
+	        string getDefaultDestinationAuthUrl();
+
 	        string getDefaultBucket();
 	        string getDefaultAccessKeyId();
 	        string getDefaultSecretAccessKey();
             string getDefaultDestinationBrokers();
             string getDefaultDestinationTopic();
+            string getDefaultTask();
 
 	        string getDefaultPrometheusPushGatewayHostname();
 	        string getDefaultPrometheusPushGatewaySecure();
+
+            string getDefaultPostgresUrl();
+
 
 	     	bool keep_running = true;
 

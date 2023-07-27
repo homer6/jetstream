@@ -13,10 +13,15 @@ using std::string;
 
 #include "JetStream.h"
 
+#include "Common.h"
+
 
 int main( int argc, char **argv ){
 
     try{
+
+        //cout << jetstream::unescape_json_string("") << endl;
+        //return 0;
 
         jetstream::JetStream jetstream_app;
         jetstream_app.registerSignalHandlers();

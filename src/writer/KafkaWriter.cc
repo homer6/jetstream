@@ -23,6 +23,9 @@ using json = nlohmann::json;
 #include <map>
 using std::map;
 
+#include "task/TaskFactory.h"
+using jetstream::task::TaskFactory;
+using jetstream::task::Task;
 
 
 namespace jetstream{
@@ -80,6 +83,7 @@ namespace writer{
 
             // Create the producer
             cppkafka::Producer kafka_producer( kafka_producer_config );
+            //kafka_producer.set_payload_policy( cppkafka::PayloadPolicy::BLOCK_ON_FULL_QUEUE );
 
 
             cppkafka::MessageBuilder message_builder( config.getConfigSetting("destination_topic") );
@@ -90,7 +94,8 @@ namespace writer{
             //    message_builder.partition(partition_value);
             //}
 
-
+            TaskFactory task_factory{ config, kafka_producer, message_builder };
+            Task& task = task_factory.create();
 
 		// consume from kafka
 			while( keep_running ){
@@ -121,36 +126,28 @@ namespace writer{
 
 					        } else {
 
-					            // Print the key (if any)
-					            //if( message.get_key() ){
-					            //    cout << "JetStream: message key: " + string(message.get_key()) << endl;
-					            //}
-
-					            const string payload = message.get_payload();
+					            const string message_payload = message.get_payload();
+					            string message_key;
+                                if( message.get_key() ){
+                                    message_key = string( message.get_key() );
+                                }
 
     				            json json_object;
 					            try{
 
-					            	json_object = json::parse( payload );
-
-                                    const string message_payload = json_object.dump();
-                                    message_builder.payload( message_payload );
-                                    kafka_producer.produce( message_builder );
+                                    task.run( message_key, message_payload );
 
 					            }catch( const std::exception& e ){
 
 					            	cerr << "JetStream: failed to parse payload: " + string(e.what()) << endl;
-							        //string json_meta = "{\"@timestamp\":" + get_timestamp() + ",\"@ts\":\"" + get_timestamp("%Y/%m/%d %H:%M:%S") + "\",\"host\":\"" + config.getConfigSetting("hostname") + "\",\"source\":\"" + config.getConfigSetting("topic") + "\",\"prd\":\"" + config.getConfigSetting("product_code") + "\"";
-					            	//request_body += json_meta + ",\"log\":\"" + escape_to_json_string(payload) + "\"}\n";
 
 					            }
-
-					            kafka_consumer.commit(message);
 
 					        }
 
 					    }
 
+                        kafka_consumer.commit();
                         kafka_producer.flush();
 
 				    }

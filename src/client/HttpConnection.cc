@@ -33,6 +33,15 @@ namespace client {
 
     void HttpConnection::setHeader( const string& key, const string& value ){
 
+        //update the first matching existing key (and return), if it exists
+        //this effectively treats this multimap as a map, but we're okay with this
+        for( auto& [existing_key, existing_value] : this->request_headers ){
+            if( key == existing_key ){
+                existing_value = value;
+                return;
+            }
+        }
+
         this->request_headers.insert( { key, value } );
 
     }

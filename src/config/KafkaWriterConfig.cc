@@ -31,6 +31,8 @@ namespace config{
 				"                                         (optional; defaults to ENV JETSTREAM_CONSUMER_GROUP)\n"
 				"  -t, --topic [TOPIC]                    a destination kafka topic\n"
 				"                                         (optional; defaults to ENV JETSTREAM_TOPIC)\n"
+				"  -ta, --task [TOPIC]                    a specific task to run\n"
+				"                                         (optional; defaults to ENV JETSTREAM_TASK)\n"
 				"  -p, --product-code [PRODUCT_CODE]      a code identifying a part of your organization or product\n"
 				"                                         (optional; defaults to ENV JETSTREAM_PRODUCT_CODE)\n"
 				"  -h, --hostname [HOSTNAME]              the name of this host that will appear in the log entries\n"

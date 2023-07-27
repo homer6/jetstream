@@ -23,27 +23,67 @@ set( JETSTREAM_SOURCES
     src/config/ElasticSearchWriterConfig.cc
     src/config/LogglyWriterConfig.cc
     src/config/KubeWriterConfig.cc
+    src/config/KafkaWriterConfig.cc
+    src/config/IngestWriterConfig.cc
     src/config/S3WriterConfig.cc
 
     src/writer/ElasticSearchWriter.cc
     src/writer/LogglyWriter.cc
     src/writer/KubeWriter.cc
+    src/writer/KafkaWriter.cc
+    src/writer/IngestWriter.cc
     src/writer/S3Writer.cc
+
+    src/task/RekeyTask.cc
+    src/task/TaskFactory.cc
+
+    src/ingest/LogSender.cc
+    src/ingest/LogSenderAttempt.cc
+    src/ingest/LogSplitter.cc
+    src/ingest/IngestWriterExporter.cc
+
+    src/parser/GizmoParser.cc
 
     src/client/S3Client.cc
     src/client/KafkaProducer.cc
     src/client/HttpConnection.cc
+    src/client/TypesenseClient.cc
+    src/client/PostgresClient.cc
+
+    src/server/HttpServer.cc
+    src/server/ApiServer.cc
+    src/server/Session.cc
+
+    src/server/model/FieldSet.cc
+    src/server/model/Model.cc
+
+    src/server/model/Gizmo.cc
+
+    src/server/collection/GizmoSet.cc
+    src/server/collection/ModelSet.cc
+    src/server/collection/SearchableModelSet.cc
+
+    src/server/event/EventRouter.cc
+
+    src/server/service/TypesenseService.cc
+    src/server/service/PostgresService.cc
+
+    src/server/search/SearchQuery.cc
+
+    src/frontend/view/SearchView.cc
 
     src/Url.cc
     src/UrlList.cc
-    src/writer/KafkaWriter.cc
-    src/config/KafkaWriterConfig.cc 
+    src/stopwatch.cc
 
     src/observability/prometheus/Metric.cc
     src/observability/prometheus/Registry.cc
 
-    src/stopwatch.cc
+    src/data/DataAugmenter.cc
+    src/data/GizmoDataAugmenter.cc
+
     src/pugixml.cpp
+
 )
 
 set( JETSTREAM_LIBS
@@ -54,6 +94,8 @@ set( JETSTREAM_LIBS
     ssl
     crypto
     z
+    pqxx
+    pq
 )
 
 set( JETSTREAM_COMPILE_OPTIONS

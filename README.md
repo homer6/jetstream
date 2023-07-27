@@ -69,7 +69,7 @@ apt install -y g++ cmake
 
 ### Install librdkafka
 ```
-apt install -y libssl-dev libboost-all-dev libsasl2-dev liblz4-dev libzstd-dev
+sudo apt install -y libssl-dev libboost-all-dev libsasl2-dev liblz4-dev libzstd-dev
 git clone https://github.com/edenhill/librdkafka.git
 cd librdkafka
 sudo ./configure --install-deps
@@ -83,13 +83,28 @@ cd ..
 ```
 git clone https://github.com/mfontanini/cppkafka.git
 cd cppkafka
-git checkout 7d097df34dd678c4dfdc1ad07027af13f5635863
 cmake .
 make -j$(nproc)
-make install
-ldconfig
+sudo make install
+sudo ldconfig
 cd ..
 ```
+
+### Install libpqxx
+```
+sudo apt install -y libssl-dev libpq-dev
+git clone --recursive https://github.com/jtv/libpqxx.git
+cd libpqxx
+rm -rf build
+mkdir build
+cd build
+cmake -DPostgreSQL_TYPE_INCLUDE_DIR:STRING=/usr/include/postgresql ..
+make -j$(nproc)
+sudo make install
+sudo ldconfig
+cd ../..
+```
+
 
 ### make jetstream
 ```
@@ -121,4 +136,17 @@ sudo systemctl start elasticsearch
 # change the cmd/entrypoint to /bin/bash; change image to ubuntu; add gdb (uncomment) to Dockerfile
 docker run -it --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --env JETSTREAM_TOPIC=my_logs jetstream:latest
 gdb --args jetstream elasticsearch 127.0.0.1:9200
+```
+
+
+
+## Run Analysis
+```
+mkdir analysis
+make -j32 && time ./build/jetstream data-job-1 /archive/data > analysis/samples.txt
+```
+
+## Run API Locally
+```
+make -j32 && ./build/jetstream api-server
 ```

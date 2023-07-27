@@ -45,12 +45,20 @@ using std::map;
 #include "config/ElasticSearchWriterConfig.h"
 #include "config/LogglyWriterConfig.h"
 #include "config/KubeWriterConfig.h"
+#include "config/IngestWriterConfig.h"
 #include "config/S3WriterConfig.h"
 
 #include "writer/ElasticSearchWriter.h"
 #include "writer/LogglyWriter.h"
 #include "writer/KubeWriter.h"
+#include "writer/IngestWriter.h"
 #include "writer/S3Writer.h"
+
+#include "parser/GizmoParser.h"
+
+#include "server/HttpServer.h"
+#include "server/ApiServer.h"
+#include <thread>
 
 
 extern char **environ;
@@ -109,6 +117,7 @@ namespace jetstream{
 "   elasticsearch     Write from a kafka topic to Elasticsearch\n"
 "   s3                Write from a kafka topic to s3 (not implemented)\n"
 "   loggly            Write from a kafka topic to loggly\n"
+"   ingest            Write from a kafka topic to Ingest HTTP\n"
 "\n"
 "behave as a reader\n"
 "   http              HTTP to kafka topic\n"
@@ -164,6 +173,90 @@ namespace jetstream{
     		return 0;
     	}
 
+
+        //run HttpServer (jetstream proxy)
+        if( this->command == "server" ){
+
+            config::IngestWriterConfig config( this );
+
+            //int return_code = config.loadCommandLineArguments();
+            config.loadCommandLineArguments();
+
+            /*
+            if( return_code != 0 ){
+                return return_code;
+            }
+
+            if( config.dry_run ){
+            	config.print();
+            	return 0;
+            }
+             */
+
+            JetStream *this_jetstream_ptr = this;
+            std::thread http_server_thread([this_jetstream_ptr, config]() {
+                jetstream::server::HttpServer http_server(this_jetstream_ptr, config);
+                http_server.run();
+            });
+            http_server_thread.join();
+            return 0;
+
+        }
+
+
+        if( this->command == "api-server" ){
+
+            config::IngestWriterConfig config( this );
+
+            //int return_code = config.loadCommandLineArguments();
+            config.loadCommandLineArguments();
+
+            /*
+            if( return_code != 0 ){
+                return return_code;
+            }
+
+            if( config.dry_run ){
+            	config.print();
+            	return 0;
+            }
+             */
+
+            JetStream *this_jetstream_ptr = this;
+            std::thread http_server_thread([this_jetstream_ptr, config]() {
+                jetstream::server::ApiServer api_server(this_jetstream_ptr, config);
+                api_server.run();
+            });
+            http_server_thread.join();
+            return 0;
+
+        }
+
+
+        //run data processing job
+        if( this->command == "data-job-1" ){
+
+            config::IngestWriterConfig config( this );
+
+            //int return_code = config.loadCommandLineArguments();
+            config.loadCommandLineArguments();
+
+            /*
+            if( return_code != 0 ){
+                return return_code;
+            }
+
+            if( config.dry_run ){
+            	config.print();
+            	return 0;
+            }
+             */
+
+            parser::GizmoParser parser( config, this->command_line_arguments );
+            parser.parse();
+            return 0;
+
+        }
 
 
 
@@ -308,6 +401,32 @@ namespace jetstream{
         }
 
 
+
+
+    	if( this->command == "ingest" ){
+
+            config::IngestWriterConfig config( this );
+
+            int return_code = config.loadCommandLineArguments();
+
+            if( return_code != 0 ){
+                return return_code;
+            }
+
+            if( config.dry_run ){
+            	config.print();
+            	return 0;
+            }
+
+            writer::IngestWriter ingest_writer( config );
+            ingest_writer.run( this->keep_running );
+
+            return 0;
+
+    	}
+
+
+
     	this->printHelp();
 
     	return 1;
@@ -340,6 +459,18 @@ namespace jetstream{
 		}
 
 		return "jetstream_logs";
+
+	}
+
+
+	string JetStream::getDefaultTask(){
+
+		string default_topic_env = this->getEnvironmentVariable( "JETSTREAM_TASK" );
+		if( default_topic_env.size() > 0 ){
+			return default_topic_env;
+		}
+
+		return "no_task";
 
 	}
 
@@ -382,7 +513,12 @@ namespace jetstream{
 
 	string JetStream::getDefaultHostname(){
 
-		string default_hostname_env = this->getEnvironmentVariable( "JETSTREAM_HOSTNAME" );
+		string default_hostname_env = this->getEnvironmentVariable( "HOSTNAME" );
+		if( default_hostname_env.size() > 0 ){
+			return default_hostname_env;
+		}
+
+		default_hostname_env = this->getEnvironmentVariable( "JETSTREAM_HOSTNAME" );
 		if( default_hostname_env.size() > 0 ){
 			return default_hostname_env;
 		}
@@ -460,6 +596,18 @@ namespace jetstream{
 		}
 
 		return "TOKEN";
+
+	}
+
+
+	string JetStream::getDefaultDestinationAuthUrl(){
+
+		string default_auth_url = this->getEnvironmentVariable( "JETSTREAM_DESTINATION_AUTH_URL" );
+		if( default_auth_url.size() > 0 ){
+			return default_auth_url;
+		}
+
+		return "";
 
 	}
 
@@ -549,7 +697,16 @@ namespace jetstream{
     }
 
 
+    string JetStream::getDefaultPostgresUrl(){
 
+        string default_postgres_url_env = this->getEnvironmentVariable( "JETSTREAM_POSTGRES_URL" );
+        if( default_postgres_url_env.size() > 0 ){
+            return default_postgres_url_env;
+        }
+
+        return "postgresql://username@localhost/dbname?connect_timeout=10&application_name=myapp&ssl=true";
+
+    }
 
 
 	void JetStream::loadEnvironmentVariables(){

@@ -27,6 +27,7 @@ namespace config {
         this->setConfigSetting( "destination_index", this->jetstream->getDefaultDestinationIndex() );
         this->setConfigSetting( "destination_secure", this->jetstream->getDefaultDestinationSecure() );
         this->setConfigSetting( "destination_token", this->jetstream->getDefaultDestinationToken() );
+        this->setConfigSetting( "destination_auth_url", this->jetstream->getDefaultDestinationAuthUrl() );
 
         this->setConfigSetting( "destination_bucket", this->jetstream->getDefaultBucket() );
         this->setConfigSetting( "destination_access_key_id", this->jetstream->getDefaultAccessKeyId() );
@@ -34,9 +35,13 @@ namespace config {
 
         this->setConfigSetting( "destination_brokers", this->jetstream->getDefaultDestinationBrokers() );
         this->setConfigSetting( "destination_topic", this->jetstream->getDefaultDestinationTopic() );
+        this->setConfigSetting( "task", this->jetstream->getDefaultTask() );
 
         this->setConfigSetting( "prom_hostname", this->jetstream->getDefaultPrometheusPushGatewayHostname() );
         this->setConfigSetting( "prom_secure", this->jetstream->getDefaultPrometheusPushGatewaySecure() );
+
+        this->setConfigSetting( "postgres_url", this->jetstream->getDefaultPostgresUrl() );
+
 
     }
 
@@ -89,19 +94,19 @@ namespace config {
         int current_argument_offset = 2;
 
 
-        while (current_argument_offset < argc) {
+        while( current_argument_offset < argc ){
 
             string current_argument = this->jetstream->command_line_arguments[current_argument_offset];
 
 
-            if (current_argument == "--topic" || current_argument == "--topics" || current_argument == "-t") {
+            if( current_argument == "--topic" || current_argument == "--topics" || current_argument == "-t" ){
 
                 current_argument_offset++;
                 if (current_argument_offset >= argc) {
                     this->printHelp();
                     return -1;
                 }
-                this->setConfigSetting("topic", this->jetstream->command_line_arguments[current_argument_offset]);
+                this->setConfigSetting( "topic", this->jetstream->command_line_arguments[current_argument_offset] );
 
                 current_argument_offset++;
                 continue;
@@ -109,14 +114,14 @@ namespace config {
             }
 
 
-            if (current_argument == "--brokers" || current_argument == "--broker" || current_argument == "-b") {
+            if( current_argument == "--task" || current_argument == "-ta" ){
 
                 current_argument_offset++;
                 if (current_argument_offset >= argc) {
                     this->printHelp();
                     return -1;
                 }
-                this->setConfigSetting("brokers", this->jetstream->command_line_arguments[current_argument_offset]);
+                this->setConfigSetting( "task", this->jetstream->command_line_arguments[current_argument_offset] );
 
                 current_argument_offset++;
                 continue;
@@ -124,14 +129,14 @@ namespace config {
             }
 
 
-            if (current_argument == "--consumer-group" || current_argument == "-c") {
+            if( current_argument == "--brokers" || current_argument == "--broker" || current_argument == "-b" ){
 
                 current_argument_offset++;
                 if (current_argument_offset >= argc) {
                     this->printHelp();
                     return -1;
                 }
-                this->setConfigSetting("consumer_group", this->jetstream->command_line_arguments[current_argument_offset] );
+                this->setConfigSetting( "brokers", this->jetstream->command_line_arguments[current_argument_offset] );
 
                 current_argument_offset++;
                 continue;
@@ -139,7 +144,23 @@ namespace config {
             }
 
 
-            if (current_argument == "--product-code" || current_argument == "--prd" || current_argument == "-p") {
+            if( current_argument == "--consumer-group" || current_argument == "-c" ){
+
+                current_argument_offset++;
+                if (current_argument_offset >= argc) {
+                    this->printHelp();
+                    return -1;
+                }
+
+                this->setConfigSetting( "consumer_group", this->jetstream->command_line_arguments[current_argument_offset] );
+
+                current_argument_offset++;
+                continue;
+
+            }
+
+
+            if( current_argument == "--product-code" || current_argument == "--prd" || current_argument == "-p" ){
 
                 current_argument_offset++;
                 if (current_argument_offset >= argc) {
@@ -154,7 +175,7 @@ namespace config {
             }
 
 
-            if (current_argument == "--hostname" || current_argument == "-h") {
+            if( current_argument == "--hostname" || current_argument == "-h" ){
 
                 current_argument_offset++;
                 if (current_argument_offset >= argc) {
@@ -169,7 +190,7 @@ namespace config {
             }
 
 
-            if (current_argument == "--destination-hostname" || current_argument == "-dh") {
+            if( current_argument == "--destination-hostname" || current_argument == "-dh" ){
 
                 current_argument_offset++;
                 if (current_argument_offset >= argc) {
@@ -184,7 +205,7 @@ namespace config {
             }
 
 
-            if (current_argument == "--destination-username" || current_argument == "-du") {
+            if( current_argument == "--destination-username" || current_argument == "-du" ){
 
                 current_argument_offset++;
                 if (current_argument_offset >= argc) {
@@ -199,7 +220,7 @@ namespace config {
             }
 
 
-            if (current_argument == "--destination-password" || current_argument == "-dp") {
+            if( current_argument == "--destination-password" || current_argument == "-dp" ){
 
                 current_argument_offset++;
                 if (current_argument_offset >= argc) {
@@ -214,7 +235,7 @@ namespace config {
             }
 
 
-            if (current_argument == "--destination-index" || current_argument == "-di") {
+            if( current_argument == "--destination-index" || current_argument == "-di" ){
 
                 current_argument_offset++;
                 if (current_argument_offset >= argc) {
@@ -229,7 +250,7 @@ namespace config {
             }
 
 
-            if (current_argument == "--destination-secure" || current_argument == "-ds") {
+            if( current_argument == "--destination-secure" || current_argument == "-ds" ){
 
                 current_argument_offset++;
                 if (current_argument_offset >= argc) {
@@ -244,13 +265,30 @@ namespace config {
             }
 
 
-            if (current_argument == "--token") {
+            if( current_argument == "--destination-auth-url" || current_argument == "-dau" ){
 
                 current_argument_offset++;
                 if (current_argument_offset >= argc) {
                     this->printHelp();
                     return -1;
                 }
+
+                this->setConfigSetting( "destination_auth_url", this->jetstream->command_line_arguments[current_argument_offset] );
+
+                current_argument_offset++;
+                continue;
+
+            }
+
+
+            if( current_argument == "--token" ){
+
+                current_argument_offset++;
+                if (current_argument_offset >= argc) {
+                    this->printHelp();
+                    return -1;
+                }
+
                 this->setConfigSetting( "destination_token", this->jetstream->command_line_arguments[current_argument_offset] );
 
                 current_argument_offset++;
@@ -259,7 +297,7 @@ namespace config {
             }
 
 
-            if (current_argument == "--prom-hostname" || current_argument == "-ph") {
+            if( current_argument == "--prom-hostname" || current_argument == "-ph" ){
 
                 current_argument_offset++;
                 if (current_argument_offset >= argc) {
@@ -274,7 +312,7 @@ namespace config {
             }
 
 
-            if (current_argument == "--prom-secure" || current_argument == "-ps") {
+            if( current_argument == "--prom-secure" || current_argument == "-ps" ){
 
                 current_argument_offset++;
                 if (current_argument_offset >= argc) {
@@ -289,7 +327,7 @@ namespace config {
             }
 
 
-            if (current_argument == "--dry-run") {
+            if( current_argument == "--dry-run" ){
 
                 current_argument_offset++;
                 this->dry_run = true;
@@ -297,7 +335,7 @@ namespace config {
 
             }
 
-            this->additional_arguments.push_back(current_argument);
+            this->additional_arguments.push_back( current_argument );
 
             current_argument_offset++;
 
