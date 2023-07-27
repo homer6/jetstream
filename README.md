@@ -112,7 +112,7 @@ sudo ldconfig
 cd ..
 ```
 
-### install cppkafka
+### Install cppkafka
 ```
 git clone https://github.com/mfontanini/cppkafka.git
 cd cppkafka
