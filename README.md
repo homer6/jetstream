@@ -1,15 +1,48 @@
 # jetstream
-Kafka swiss army knife.
 
-Logport empowers application developers and system administrators with modern observability. This is a turn-key solution for stable, performant, and scalable introspection into what your applications are doing, right now.
+Jetstream is a general application framework in modern c++.
 
-[Logport](https://github.com/homer6/logport) watches log files and sends changes to kafka (one line per message). Logport enables your applications to easily produce observability types (obtypes): Metrics, application Events, Telemetry, Traces, and Logs (METTL). Once in Kafka, [Jetstream](https://github.com/homer6/jetstream) can ship your obtypes to compatible "heads" (indices or dashboards) such as Elasticsearch, Logz.io, or Loggly.
+It can:
+
+1. Act as a persistent kafka producer/consumer
+1. HTTP -> Kafka
+1. Kafka -> HTTP (able to batch)
+1. Sink to ElasticSearch
+1. Sink to TypeSense
+1. Sink to Loggly/Logz.io
+1. HTTP API
+1. HTTP Web Serving
+1. HTTP Client
+1. Prometheus Exporter for each of the above
+1. Parallelized XML/JSON/CSV parser (with thread pool)
+1. Create data augmentation
+1. Postgres Client
+1. Typesense Client
+1. HTTP endpoint to federate search and relation DB queries into a single HTTP call (GraphQL-like)
+1. Event/message router (splits kafka events from a single topic to multiple HTTP endpoints, batched)
+
+
+Jetstream optionally works with [Logport](https://github.com/homer6/logport) watches log files and sends changes to kafka (one line per message). Logport enables your applications to easily ship logs to kafka (as they are written to and logrotated).
 
 See the [Getting Started Guides](https://github.com/homer6/jetstream/tree/master/docs) to jump right in.
 
-## Architecture Overview
 
-![Architecture](https://raw.githubusercontent.com/homer6/logport/master/docs/resources/logport_architecture.jpg)
+## Roadmap
+
+1. Websocket support
+1. RocksDB support for local storage
+1. S3 sink
+1. S3 reader/writer
+1. HTML Templates with CrowCPP integration
+1. Web Crawler
+1. LLM Client (OpenAI)
+
+
+## Performance
+
+1. Each consumer instance processes around 10k messages per second (per partition)
+1. 50 MB runtime memory
+1. Low CPU usage (often below 3%, depending on workload)
 
 
 ## Installing
