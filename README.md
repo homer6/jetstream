@@ -13,6 +13,7 @@ Jetstream is a modern C++ application framework that provides a robust set of fe
 - [Debugging](#debugging)
 - [Development](#development)
 - [License](#license)
+- [Issue Tracking](#issue-tracking)
 
 
 ## Features
@@ -36,7 +37,6 @@ Jetstream is a modern C++ application framework that provides a robust set of fe
 
 Jetstream optionally works with [Logport](https://github.com/homer6/logport), which monitors log files and sends changes to Kafka (one line per message). Logport enables your applications to easily ship logs to Kafka as they are written and log-rotated.
 
----
 
 ## Roadmap
 
@@ -47,7 +47,6 @@ Jetstream optionally works with [Logport](https://github.com/homer6/logport), wh
 5. **Web Crawler Implementation**: Develop a web crawler for data collection.
 6. **LLM Client Support**: Integrate with OpenAI's Large Language Models.
 
----
 
 ## Performance
 
@@ -172,11 +171,10 @@ To run the API server locally:
 make -j"$(nproc)" && ./jetstream api-server
 ```
 
-
 ## License
 
 Jetstream is released under the [MIT License](LICENSE).
 
----
+## Issue Tracking
 
 If you encounter any issues or have suggestions for improvement, please feel free to reach out through the project's [GitHub repository](https://github.com/homer6/jetstream/issues).
