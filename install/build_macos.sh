@@ -41,33 +41,22 @@ brew install \
     zstd \
     libpq \
     git \
-    pkg-config
+    pkg-config \
+    librdkafka
 
 echo "Setting OpenSSL environment variables..."
 # Set environment variables for OpenSSL
 export OPENSSL_ROOT_DIR=$(brew --prefix openssl)
-export OPENSSL_LIBRARIES=$OPENSSL_ROOT_DIR/lib
-export OPENSSL_INCLUDE_DIR=$OPENSSL_ROOT_DIR/include
-
-echo "Installing librdkafka..."
-# Install librdkafka
-git clone https://github.com/edenhill/librdkafka.git
-cd librdkafka
-
-./configure --install-deps
-make -j"$CPU_CORES"
-sudo make install
-
-cd ..
-rm -rf librdkafka
+export OPENSSL_LIBRARIES="$OPENSSL_ROOT_DIR/lib"
+export OPENSSL_INCLUDE_DIR="$OPENSSL_ROOT_DIR/include"
 
 echo "Installing cppkafka..."
-# Install cppkafka
+# Install cppkafka from source
 git clone https://github.com/mfontanini/cppkafka.git
 cd cppkafka
 
 mkdir build && cd build
-cmake .. -DOPENSSL_ROOT_DIR=$OPENSSL_ROOT_DIR
+cmake .. -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR"
 make -j"$CPU_CORES"
 sudo make install
 
@@ -75,27 +64,29 @@ cd ../..
 rm -rf cppkafka
 
 echo "Installing libpqxx..."
-# Install libpqxx
+# Install libpqxx from source
 git clone --recursive https://github.com/jtv/libpqxx.git
 cd libpqxx
 
 mkdir build && cd build
-cmake .. -DPostgreSQL_TYPE_INCLUDE_DIR=$(brew --prefix libpq)/include
+cmake .. -DPostgreSQL_TYPE_INCLUDE_DIR="$(brew --prefix libpq)/include" -DPostgreSQL_TYPE_LIBRARY_DIR="$(brew --prefix libpq)/lib"
 make -j"$CPU_CORES"
 sudo make install
 
 cd ../..
 rm -rf libpqxx
 
-# echo "Building jetstream application..."
-# # Build jetstream
-# if [ -d "jetstream" ]; then
-#     cd jetstream
-#     rm -rf build/*
-#     cmake .
-#     make -j"$CPU_CORES"
-#     echo "Build complete. You can now run ./jetstream in the jetstream directory."
-# else
-#     echo "Error: jetstream directory not found."
-#     exit 1
-# fi
+echo "Building Jetstream application..."
+# Build Jetstream
+if [ -d "jetstream" ]; then
+    cd jetstream
+    rm -rf build
+    mkdir build
+    cd build
+    cmake ..
+    make -j"$CPU_CORES"
+    echo "Build complete. You can now run ./jetstream in the jetstream/build directory."
+else
+    echo "Error: jetstream directory not found."
+    exit 1
+fi

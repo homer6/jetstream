@@ -1,12 +1,14 @@
-# Installing Jetstream on macOS
+# Installing Jetstream on Ubuntu
 
-This guide provides detailed instructions on how to set up and build the **Jetstream** application on macOS.
+This guide provides detailed instructions on how to set up and build the **Jetstream** application on Ubuntu.
+
 
 ## Prerequisites
 
-- **Operating System**: macOS
+- **Operating System**: Ubuntu 18.04 or later
 - **Administrative Privileges**: Required for installing packages and libraries
 - **Internet Connection**: Needed to download packages and clone repositories
+
 
 ## Steps
 
@@ -28,9 +30,9 @@ An automated script is provided to install all dependencies and build Jetstream.
 Download and execute the script:
 
 ```bash
-curl -O https://raw.githubusercontent.com/homer6/jetstream/master/install/build_macos.sh
-chmod +x build_macos.sh
-./build_macos.sh
+curl -O https://raw.githubusercontent.com/homer6/jetstream/master/install/build_ubuntu.sh
+chmod +x build_ubuntu.sh
+./build_ubuntu.sh
 ```
 
 #### Option 2: Run the Script from the `install` Directory
@@ -39,8 +41,8 @@ If you have the repository cloned, navigate to the `install` directory and run t
 
 ```bash
 cd install
-chmod +x build_macos.sh
-./build_macos.sh
+chmod +x build_ubuntu.sh
+./build_ubuntu.sh
 ```
 
 **Note**: You may be prompted to enter your password during the installation process for commands that require `sudo`.
@@ -57,33 +59,27 @@ Once the script completes successfully:
   ./jetstream
   ```
 
----
+
 
 ## Troubleshooting
 
-- **Xcode Command Line Tools Installation Issues**:
-  - If the installation hangs, ensure that any prompts are addressed, or manually install the tools via `xcode-select --install`.
-- **Homebrew Installation Issues**:
-  - If Homebrew fails to install, visit [Homebrew's official website](https://brew.sh/) for troubleshooting tips.
 - **Library Not Found Errors**:
-  - Ensure that environment variables are correctly set.
-  - Verify that the libraries are installed in standard locations.
+  - Ensure that all dependencies are installed.
+  - Verify that the libraries are in the correct locations.
 - **Permission Denied Errors**:
   - Make sure you have the necessary permissions to install software.
   - Run the script with `sudo` if necessary.
+- **Compilation Errors**:
+  - Ensure you have a compatible version of `g++` that supports C++17.
 
----
 
 ## Additional Information
 
-- **Environment Variables**:
-  - The script sets environment variables for OpenSSL to ensure libraries are found during the build process.
 - **Cleanup**:
   - The script removes cloned repositories after installation to keep your workspace clean.
 - **Customizing the Build**:
-  - You can modify the `build_macos.sh` script to suit your specific needs, such as changing installation directories or adding additional build options.
+  - You can modify the `build_ubuntu.sh` script to suit your specific needs, such as changing installation directories or adding additional build options.
 
----
 
 ## Contact Information
 
