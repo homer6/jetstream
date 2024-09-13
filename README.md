@@ -14,7 +14,6 @@ Jetstream is a modern C++ application framework that provides a robust set of fe
 - [Development](#development)
 - [License](#license)
 
----
 
 ## Features
 
@@ -56,7 +55,6 @@ Jetstream optionally works with [Logport](https://github.com/homer6/logport), wh
 - **Memory Usage**: Utilizes around **50 MB** of runtime memory.
 - **CPU Usage**: Typically consumes **below 3% CPU**, depending on the workload.
 
----
 
 ## Installation
 
@@ -65,7 +63,6 @@ For detailed installation instructions, please refer to the following guides:
 - [Installation on macOS](install/build_macos.md)
 - [Installation on Ubuntu](install/build_ubuntu.md)
 
----
 
 ## Building with Docker
 
@@ -85,7 +82,6 @@ docker build -t jetstream:latest -t homer6/jetstream:latest .
 docker push homer6/jetstream:latest
 ```
 
----
 
 ## Running Jetstream
 
@@ -126,7 +122,6 @@ To run Jetstream and sink data to ElasticSearch:
 ./jetstream elasticsearch -t my_logs 192.168.1.91:9200
 ```
 
----
 
 ## Debugging
 
@@ -157,7 +152,6 @@ To debug Jetstream using GDB within Docker:
    gdb --args ./jetstream elasticsearch 127.0.0.1:9200
    ```
 
----
 
 ## Development
 
@@ -178,7 +172,6 @@ To run the API server locally:
 make -j"$(nproc)" && ./jetstream api-server
 ```
 
----
 
 ## License
 
@@ -187,5 +180,3 @@ Jetstream is released under the [MIT License](LICENSE).
 ---
 
 If you encounter any issues or have suggestions for improvement, please feel free to reach out through the project's [GitHub repository](https://github.com/homer6/jetstream/issues).
-
-```
