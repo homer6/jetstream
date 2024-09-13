@@ -5,3 +5,10 @@
 /.idea
 /cmake-build-debug
 /build/jetstream
+
+
+
+/build/CMakeCache.txt
+/build/CMakeFiles
+/build/Makefile
+/build/cmake_install.cmake
