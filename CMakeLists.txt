@@ -1,20 +1,78 @@
-cmake_minimum_required( VERSION "2.6.4" )
+cmake_minimum_required(VERSION 3.10)
 
-project( jetstream CXX C )
+project(jetstream CXX C)
 
+# Set the C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Include the 'include' directory
 include_directories(
     include
-    /usr/local/include/librdkafka
-    /usr/local/include/cppkafka
 )
 
-FIND_LIBRARY(RDKAFKA rdkafka /usr/local/lib NO_DEFAULT_PATH)
-FIND_LIBRARY(CPPKAFKA cppkafka /usr/local/lib NO_DEFAULT_PATH)
+# Set compile options
+set(JETSTREAM_COMPILE_OPTIONS
+    -Wall
+    -Wextra
+    -O3
+    -DCPPHTTPLIB_OPENSSL_SUPPORT
+    -DCPPHTTPLIB_ZLIB_SUPPORT
+    # -g
+)
 
-link_libraries(${RDKAFKA} ${CPPKAFKA})
+# Find OpenSSL
+find_package(OpenSSL REQUIRED)
+if(OPENSSL_FOUND)
+    message(STATUS "Found OpenSSL: ${OPENSSL_VERSION}")
+    include_directories(${OPENSSL_INCLUDE_DIR})
+else()
+    message(FATAL_ERROR "OpenSSL not found")
+endif()
 
-set( JETSTREAM_SOURCES
+# Find librdkafka
+find_path(RDKAFKA_INCLUDE_DIR NAMES rdkafka.h PATHS /usr/local/include /usr/include /opt/homebrew/include)
+find_library(RDKAFKA_LIBRARY NAMES rdkafka PATHS /usr/local/lib /usr/lib /opt/homebrew/lib)
+
+if(RDKAFKA_INCLUDE_DIR AND RDKAFKA_LIBRARY)
+    message(STATUS "Found librdkafka")
+    include_directories(${RDKAFKA_INCLUDE_DIR})
+else()
+    message(FATAL_ERROR "librdkafka not found")
+endif()
+
+# Find cppkafka
+find_path(CPPKAFKA_INCLUDE_DIR NAMES cppkafka/cppkafka.h PATHS /usr/local/include /usr/include /opt/homebrew/include)
+find_library(CPPKAFKA_LIBRARY NAMES cppkafka PATHS /usr/local/lib /usr/lib /opt/homebrew/lib)
+
+if(CPPKAFKA_INCLUDE_DIR AND CPPKAFKA_LIBRARY)
+    message(STATUS "Found cppkafka")
+    include_directories(${CPPKAFKA_INCLUDE_DIR})
+else()
+    message(FATAL_ERROR "cppkafka not found")
+endif()
+
+# Find libpqxx
+find_path(PQXX_INCLUDE_DIR NAMES pqxx/pqxx PATHS /usr/local/include /usr/include /opt/homebrew/include)
+find_library(PQXX_LIBRARY NAMES pqxx PATHS /usr/local/lib /usr/lib /opt/homebrew/lib)
+
+if(PQXX_INCLUDE_DIR AND PQXX_LIBRARY)
+    message(STATUS "Found libpqxx")
+    include_directories(${PQXX_INCLUDE_DIR})
+else()
+    message(FATAL_ERROR "libpqxx not found")
+endif()
+
+# Additional include directories if necessary
+include_directories(
+    ${OPENSSL_INCLUDE_DIR}
+    ${RDKAFKA_INCLUDE_DIR}
+    ${CPPKAFKA_INCLUDE_DIR}
+    ${PQXX_INCLUDE_DIR}
+)
+
+# Source files
+set(JETSTREAM_SOURCES
     src/Common.cc
     src/Observer.cc
     src/JetStream.cc
@@ -84,36 +142,31 @@ set( JETSTREAM_SOURCES
 
     src/pugixml.cpp
 
+    src/jetstream_main.cc
 )
 
-set( JETSTREAM_LIBS
-    rdkafka
-    cppkafka
+# Libraries
+set(JETSTREAM_LIBS
+    ${RDKAFKA_LIBRARY}
+    ${CPPKAFKA_LIBRARY}
     pthread
     dl
-    ssl
-    crypto
+    ${OPENSSL_LIBRARIES}
     z
-    pqxx
-    pq
+    ${PQXX_LIBRARY}
 )
 
-set( JETSTREAM_COMPILE_OPTIONS
-    -Wall
-    -Wextra
-    -O3
-    -std=c++17
-    -DCPPHTTPLIB_OPENSSL_SUPPORT
-    -DCPPHTTPLIB_ZLIB_SUPPORT
-    # -g
+# Create executable
+add_executable(jetstream ${JETSTREAM_SOURCES})
+
+# Link libraries to the executable
+target_link_libraries(jetstream PRIVATE ${JETSTREAM_LIBS})
+
+# Set compile options for the target
+target_compile_options(jetstream PRIVATE ${JETSTREAM_COMPILE_OPTIONS})
+
+# Set rpath if necessary
+set_target_properties(jetstream PROPERTIES
+    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib"
+    BUILD_WITH_INSTALL_RPATH TRUE
 )
-
-add_executable( build/jetstream ${JETSTREAM_SOURCES} src/jetstream_main.cc )
-
-target_link_libraries( build/jetstream -Wl,-rpath=/usr/local/lib/logport:. ${JETSTREAM_LIBS} )
-
-set_target_properties( build/jetstream
-    PROPERTIES
-    COMPILE_OPTIONS  "${JETSTREAM_COMPILE_OPTIONS}"
-)
-
