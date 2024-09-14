@@ -76,17 +76,15 @@ sudo make install
 cd ../..
 rm -rf libpqxx
 
+cd ..
+
 echo "Building Jetstream application..."
 # Build Jetstream
-if [ -d "jetstream" ]; then
-    cd jetstream
-    rm -rf build
-    mkdir build
-    cd build
-    cmake ..
-    make -j"$CPU_CORES"
-    echo "Build complete. You can now run ./jetstream in the jetstream/build directory."
-else
-    echo "Error: jetstream directory not found."
-    exit 1
-fi
+
+rm -rf build
+mkdir build
+cd build
+cmake ..
+make -j"$CPU_CORES"
+echo "Build complete. You can now run ./jetstream in the jetstream/build directory."
+

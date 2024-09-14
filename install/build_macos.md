@@ -93,6 +93,3 @@ For further assistance, support, or to report issues:
 - **Issue Tracker**: [Jetstream GitHub Issues](https://github.com/homer6/jetstream/issues)
 - **Documentation**: Refer to the official Jetstream documentation for more details.
 
----
-
-**Disclaimer**: This script and instructions are provided "as is" without warranty of any kind. Use at your own risk.

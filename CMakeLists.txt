@@ -21,6 +21,17 @@ set(JETSTREAM_COMPILE_OPTIONS
     # -g
 )
 
+# Find Boost
+find_package(Boost REQUIRED)
+
+if(Boost_FOUND)
+    message(STATUS "Found Boost: ${Boost_VERSION}")
+    include_directories(${Boost_INCLUDE_DIRS})
+else()
+    message(FATAL_ERROR "Boost not found")
+endif()
+
+
 # Find OpenSSL
 find_package(OpenSSL REQUIRED)
 if(OPENSSL_FOUND)
@@ -31,44 +42,58 @@ else()
 endif()
 
 # Find librdkafka
-find_path(RDKAFKA_INCLUDE_DIR NAMES rdkafka.h PATHS /usr/local/include /usr/include /opt/homebrew/include)
-find_library(RDKAFKA_LIBRARY NAMES rdkafka PATHS /usr/local/lib /usr/lib /opt/homebrew/lib)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(RDKAFKA REQUIRED rdkafka)
 
-if(RDKAFKA_INCLUDE_DIR AND RDKAFKA_LIBRARY)
+if(RDKAFKA_FOUND)
     message(STATUS "Found librdkafka")
-    include_directories(${RDKAFKA_INCLUDE_DIR})
+    include_directories(${RDKAFKA_INCLUDE_DIRS})
+    link_directories(${RDKAFKA_LIBRARY_DIRS})
 else()
     message(FATAL_ERROR "librdkafka not found")
 endif()
 
 # Find cppkafka
-find_path(CPPKAFKA_INCLUDE_DIR NAMES cppkafka/cppkafka.h PATHS /usr/local/include /usr/include /opt/homebrew/include)
-find_library(CPPKAFKA_LIBRARY NAMES cppkafka PATHS /usr/local/lib /usr/lib /opt/homebrew/lib)
+find_path(CPPKAFKA_INCLUDE_DIRS NAMES cppkafka/cppkafka.h PATHS /usr/local/include /usr/include /opt/homebrew/include)
+find_library(CPPKAFKA_LIBRARIES NAMES cppkafka PATHS /usr/local/lib /usr/lib /opt/homebrew/lib)
 
-if(CPPKAFKA_INCLUDE_DIR AND CPPKAFKA_LIBRARY)
+if(CPPKAFKA_INCLUDE_DIRS AND CPPKAFKA_LIBRARIES)
     message(STATUS "Found cppkafka")
-    include_directories(${CPPKAFKA_INCLUDE_DIR})
+    include_directories(${CPPKAFKA_INCLUDE_DIRS})
 else()
     message(FATAL_ERROR "cppkafka not found")
 endif()
 
-# Find libpqxx
-find_path(PQXX_INCLUDE_DIR NAMES pqxx/pqxx PATHS /usr/local/include /usr/include /opt/homebrew/include)
-find_library(PQXX_LIBRARY NAMES pqxx PATHS /usr/local/lib /usr/lib /opt/homebrew/lib)
+# Find libpq
+pkg_check_modules(LIBPQ REQUIRED libpq)
 
-if(PQXX_INCLUDE_DIR AND PQXX_LIBRARY)
+if(LIBPQ_FOUND)
+    message(STATUS "Found libpq")
+    include_directories(${LIBPQ_INCLUDE_DIRS})
+    link_directories(${LIBPQ_LIBRARY_DIRS})
+else()
+    message(FATAL_ERROR "libpq not found")
+endif()
+
+# Find libpqxx
+find_path(PQXX_INCLUDE_DIRS NAMES pqxx PATHS /usr/local/include /usr/include /opt/homebrew/include)
+find_library(PQXX_LIBRARIES NAMES pqxx PATHS /usr/local/lib /usr/lib /opt/homebrew/lib)
+
+if(PQXX_INCLUDE_DIRS AND PQXX_LIBRARIES)
     message(STATUS "Found libpqxx")
-    include_directories(${PQXX_INCLUDE_DIR})
+    include_directories(${PQXX_INCLUDE_DIRS})
 else()
     message(FATAL_ERROR "libpqxx not found")
 endif()
 
 # Additional include directories if necessary
 include_directories(
+    ${Boost_INCLUDE_DIRS}
     ${OPENSSL_INCLUDE_DIR}
-    ${RDKAFKA_INCLUDE_DIR}
-    ${CPPKAFKA_INCLUDE_DIR}
-    ${PQXX_INCLUDE_DIR}
+    ${RDKAFKA_INCLUDE_DIRS}
+    ${CPPKAFKA_INCLUDE_DIRS}
+    ${PQXX_INCLUDE_DIRS}
+    ${LIBPQ_INCLUDE_DIRS}
 )
 
 # Source files
@@ -145,16 +170,23 @@ set(JETSTREAM_SOURCES
     src/jetstream_main.cc
 )
 
+find_package(Boost REQUIRED COMPONENTS system filesystem)
+
 # Libraries
 set(JETSTREAM_LIBS
-    ${RDKAFKA_LIBRARY}
-    ${CPPKAFKA_LIBRARY}
+    ${RDKAFKA_LIBRARIES}
+    ${CPPKAFKA_LIBRARIES}
     pthread
     dl
     ${OPENSSL_LIBRARIES}
     z
-    ${PQXX_LIBRARY}
+    ${LIBPQ_LIBRARIES}
+    ${PQXX_LIBRARIES}
+    ${Boost_LIBRARIES}
 )
+
+
+
 
 # Create executable
 add_executable(jetstream ${JETSTREAM_SOURCES})
