@@ -6,9 +6,14 @@ project(jetstream CXX C)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Handle CMP0167 policy for FindBoost
+if(POLICY CMP0167)
+  cmake_policy(SET CMP0167 OLD)
+endif()
+
 # Include the 'include' directory
 include_directories(
-    include
+    ${CMAKE_SOURCE_DIR}/include
 )
 
 # Set compile options
@@ -21,8 +26,28 @@ set(JETSTREAM_COMPILE_OPTIONS
     # -g
 )
 
-# Find Boost
-find_package(Boost REQUIRED)
+# Find pkg-config
+find_package(PkgConfig REQUIRED)
+
+# Function to set PKG_CONFIG_PATH for Homebrew packages on macOS
+function(set_pkg_config_path brew_package_name pkgconfig_module_name)
+    if(APPLE)
+        execute_process(
+            COMMAND brew --prefix ${brew_package_name}
+            OUTPUT_VARIABLE PREFIX
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        set(ENV{PKG_CONFIG_PATH} "${PREFIX}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+    endif()
+endfunction()
+
+# Set PKG_CONFIG_PATH for necessary packages
+set_pkg_config_path(librdkafka rdkafka)
+set_pkg_config_path(libpq libpq)
+set_pkg_config_path(openssl@3 openssl)
+
+# Find Boost libraries
+find_package(Boost REQUIRED COMPONENTS system filesystem)
 
 if(Boost_FOUND)
     message(STATUS "Found Boost: ${Boost_VERSION}")
@@ -31,9 +56,9 @@ else()
     message(FATAL_ERROR "Boost not found")
 endif()
 
-
 # Find OpenSSL
 find_package(OpenSSL REQUIRED)
+
 if(OPENSSL_FOUND)
     message(STATUS "Found OpenSSL: ${OPENSSL_VERSION}")
     include_directories(${OPENSSL_INCLUDE_DIR})
@@ -42,21 +67,28 @@ else()
 endif()
 
 # Find librdkafka
-find_package(PkgConfig REQUIRED)
 pkg_check_modules(RDKAFKA REQUIRED rdkafka)
-
 if(RDKAFKA_FOUND)
     message(STATUS "Found librdkafka")
+    message(STATUS "RDKAFKA_LIBRARIES: ${RDKAFKA_LIBRARIES}")
+    message(STATUS "RDKAFKA_LIBRARY_DIRS: ${RDKAFKA_LIBRARY_DIRS}")
     include_directories(${RDKAFKA_INCLUDE_DIRS})
     link_directories(${RDKAFKA_LIBRARY_DIRS})
+    # Use full path to the library
+    find_library(RDKAFKA_LIB NAMES rdkafka HINTS ${RDKAFKA_LIBRARY_DIRS})
+    if(RDKAFKA_LIB)
+        message(STATUS "Found rdkafka library at: ${RDKAFKA_LIB}")
+        set(RDKAFKA_LIBRARIES ${RDKAFKA_LIB})
+    else()
+        message(FATAL_ERROR "Could not find rdkafka library")
+    endif()
 else()
     message(FATAL_ERROR "librdkafka not found")
 endif()
 
 # Find cppkafka
-find_path(CPPKAFKA_INCLUDE_DIRS NAMES cppkafka/cppkafka.h PATHS /usr/local/include /usr/include /opt/homebrew/include)
-find_library(CPPKAFKA_LIBRARIES NAMES cppkafka PATHS /usr/local/lib /usr/lib /opt/homebrew/lib)
-
+find_path(CPPKAFKA_INCLUDE_DIRS cppkafka/cppkafka.h)
+find_library(CPPKAFKA_LIBRARIES cppkafka)
 if(CPPKAFKA_INCLUDE_DIRS AND CPPKAFKA_LIBRARIES)
     message(STATUS "Found cppkafka")
     include_directories(${CPPKAFKA_INCLUDE_DIRS})
@@ -64,21 +96,9 @@ else()
     message(FATAL_ERROR "cppkafka not found")
 endif()
 
-# Find libpq
-pkg_check_modules(LIBPQ REQUIRED libpq)
-
-if(LIBPQ_FOUND)
-    message(STATUS "Found libpq")
-    include_directories(${LIBPQ_INCLUDE_DIRS})
-    link_directories(${LIBPQ_LIBRARY_DIRS})
-else()
-    message(FATAL_ERROR "libpq not found")
-endif()
-
 # Find libpqxx
-find_path(PQXX_INCLUDE_DIRS NAMES pqxx PATHS /usr/local/include /usr/include /opt/homebrew/include)
-find_library(PQXX_LIBRARIES NAMES pqxx PATHS /usr/local/lib /usr/lib /opt/homebrew/lib)
-
+find_path(PQXX_INCLUDE_DIRS pqxx/pqxx)
+find_library(PQXX_LIBRARIES pqxx)
 if(PQXX_INCLUDE_DIRS AND PQXX_LIBRARIES)
     message(STATUS "Found libpqxx")
     include_directories(${PQXX_INCLUDE_DIRS})
@@ -86,14 +106,34 @@ else()
     message(FATAL_ERROR "libpqxx not found")
 endif()
 
-# Additional include directories if necessary
+# Find libpq
+pkg_check_modules(LIBPQ REQUIRED libpq)
+if(LIBPQ_FOUND)
+    message(STATUS "Found libpq")
+    message(STATUS "LIBPQ_LIBRARIES: ${LIBPQ_LIBRARIES}")
+    message(STATUS "LIBPQ_LIBRARY_DIRS: ${LIBPQ_LIBRARY_DIRS}")
+    include_directories(${LIBPQ_INCLUDE_DIRS})
+    link_directories(${LIBPQ_LIBRARY_DIRS})
+    # Use full path to the library
+    find_library(LIBPQ_LIB NAMES pq HINTS ${LIBPQ_LIBRARY_DIRS})
+    if(LIBPQ_LIB)
+        message(STATUS "Found libpq library at: ${LIBPQ_LIB}")
+        set(LIBPQ_LIBRARIES ${LIBPQ_LIB})
+    else()
+        message(FATAL_ERROR "Could not find libpq library")
+    endif()
+else()
+    message(FATAL_ERROR "libpq not found")
+endif()
+
+# Additional include directories
 include_directories(
-    ${Boost_INCLUDE_DIRS}
     ${OPENSSL_INCLUDE_DIR}
     ${RDKAFKA_INCLUDE_DIRS}
     ${CPPKAFKA_INCLUDE_DIRS}
     ${PQXX_INCLUDE_DIRS}
     ${LIBPQ_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS}
 )
 
 # Source files
@@ -170,23 +210,29 @@ set(JETSTREAM_SOURCES
     src/jetstream_main.cc
 )
 
-find_package(Boost REQUIRED COMPONENTS system filesystem)
-
 # Libraries
 set(JETSTREAM_LIBS
     ${RDKAFKA_LIBRARIES}
     ${CPPKAFKA_LIBRARIES}
-    pthread
-    dl
-    ${OPENSSL_LIBRARIES}
-    z
-    ${LIBPQ_LIBRARIES}
-    ${PQXX_LIBRARIES}
     ${Boost_LIBRARIES}
+    ${OPENSSL_LIBRARIES}
+    ${PQXX_LIBRARIES}
+    ${LIBPQ_LIBRARIES}
 )
 
-
-
+# Handle platform-specific settings
+if(WIN32)
+    # Windows-specific libraries
+    list(APPEND JETSTREAM_LIBS ws2_32)
+    # Define any Windows-specific compile options if needed
+    set(PLATFORM_COMPILE_OPTIONS)
+else()
+    # POSIX platforms (Linux, macOS)
+    find_package(Threads REQUIRED)
+    list(APPEND JETSTREAM_LIBS Threads::Threads)
+    list(APPEND JETSTREAM_LIBS dl z)
+    set(PLATFORM_COMPILE_OPTIONS)
+endif()
 
 # Create executable
 add_executable(jetstream ${JETSTREAM_SOURCES})
@@ -195,10 +241,12 @@ add_executable(jetstream ${JETSTREAM_SOURCES})
 target_link_libraries(jetstream PRIVATE ${JETSTREAM_LIBS})
 
 # Set compile options for the target
-target_compile_options(jetstream PRIVATE ${JETSTREAM_COMPILE_OPTIONS})
+target_compile_options(jetstream PRIVATE ${JETSTREAM_COMPILE_OPTIONS} ${PLATFORM_COMPILE_OPTIONS})
 
 # Set rpath if necessary
-set_target_properties(jetstream PROPERTIES
-    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib"
-    BUILD_WITH_INSTALL_RPATH TRUE
-)
+if(NOT WIN32)
+    set_target_properties(jetstream PROPERTIES
+        INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib"
+        BUILD_WITH_INSTALL_RPATH TRUE
+    )
+endif()
