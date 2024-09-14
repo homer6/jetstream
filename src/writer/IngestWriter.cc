@@ -119,96 +119,58 @@ namespace writer{
 
                 precise_stopwatch stopwatch;
 
-				try{
+                try{
 
-                    sender.updateJwtToken( user_id );
-                    cout << "End updateJwtToken: " << stopwatch.elapsed_time_ms() << "ms" << endl;
+                    size_t max_batch_size = 1;
 
-                    size_t poll_remaining = 256;
-                    size_t tries_remaining = 1;
+                    std::chrono::milliseconds poll_timeout_ms{1000};
 
+                    vector<Message> messages = kafka_consumer.poll_batch(max_batch_size, poll_timeout_ms);                    
 
-                    splitter.clear();
-                    sender.poll();
+                    size_t total_messages = messages.size();
 
-                    while( poll_remaining > 10 ){
+                    if( total_messages > 0 ){
 
-                        tries_remaining--;
-
-                        size_t max_batch_size = poll_remaining;
-                        std::chrono::milliseconds poll_timeout_ms{5};
-
-                        cout << "End sender.poll(): " << stopwatch.elapsed_time_ms() << "ms" << endl;
-
-                        vector<Message> messages = kafka_consumer.poll_batch(max_batch_size, poll_timeout_ms);
                         cout << "End poll_batch: " << stopwatch.elapsed_time_ms() << "ms" << endl;
 
-                        size_t total_messages = messages.size();
+                        int x = 0;
+                        for( auto &message: messages ){
 
-                        if( total_messages > 0 ){
+                            // If we managed to get a message
+                            if( message.get_error() ){
 
-                            int x = 0;
-                            for( auto &message: messages ){
-
-                                // If we managed to get a message
-                                if( message.get_error() ){
-
-                                    // Ignore EOF notifications from rdkafka
-                                    if( !message.is_eof() ){
-                                        cerr << "JetStream: [+] Received error notification: " + message.get_error().to_string() << endl;
-                                    }
-
-                                }else{
-
-                                    try{
-                                        const string payload = message.get_payload();
-
-                                        json log_object = json::parse(payload);
-
-                                        const string this_user_id = log_object.at("user_id").get<string>();
-
-                                        if (this_user_id != user_id) {
-                                            continue;
-                                        }
-
-                                        splitter.addLogEntry(payload);
-                                        x++;
-                                    }catch( std::exception &e ){
-                                        cerr << "JetStream: failed to parse payload: " + string(e.what()) << endl;
-                                    }
-
+                                // Ignore EOF notifications from rdkafka
+                                if( !message.is_eof() ){
+                                    cerr << "JetStream: [+] Received error notification: " + message.get_error().to_string() << endl;
                                 }
 
-                                poll_remaining--;
+                            }else{
+
+                                try{
+
+                                    const string payload = message.get_payload();
+
+                                    json log_object = json::parse(payload);
+
+                                    cout << log_object.dump(4) << endl;
+
+                                }catch( std::exception &e ){
+                                    cerr << "JetStream: failed to parse payload: " + string(e.what()) << endl;
+                                }
 
                             }
 
-                        } // end messages.size()
-
-                        try{
-                            if( total_messages > 0 ) kafka_consumer.commit();
-                        }catch(std::exception& e){
-                            cerr << "JetStream: general exception (inner) caught with ingest writer: " + string(e.what()) << endl;
-                            cout << "End exception: " << stopwatch.elapsed_time_ms() << "ms" << endl;
                         }
 
+                    } // end messages.size()
 
-                        if( tries_remaining < 1 ){
-                            break;
-                        }
-
-                    } // poll_remaining
-
-                    cout << "End splitter.addLogEntry(" << 256 - poll_remaining << "): " << stopwatch.elapsed_time_ms() << "ms" << endl;
-
-
-                    if( !splitter.empty() ){
-                        sender.send( splitter, user_id );  //nothrow; blocks until all log types have returned (retries batch once)
-                        cout << "End sender.send(): " << stopwatch.elapsed_time_ms() << "ms" << endl;
-                        //cout << "End kafka_consumer.commit(): " << stopwatch.elapsed_time_ms() << "ms" << endl;
+                    try{
+                        if( total_messages > 0 ) kafka_consumer.commit();
+                    }catch(std::exception& e){
+                        cerr << "JetStream: general exception (inner) caught with ingest writer: " + string(e.what()) << endl;
+                        cout << "End exception: " << stopwatch.elapsed_time_ms() << "ms" << endl;
                     }
 
-                    //kafka_consumer.commit();
 
 				}catch( std::exception &e ){
 
