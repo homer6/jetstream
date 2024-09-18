@@ -98,7 +98,7 @@ namespace workflow{
 
 
 
-    WorkflowRunStepResult WorkflowRunStepCommand::run(){
+    WorkflowRunStepResult WorkflowRunStepCommand::run( const std::function<void()>& poll_service_callback ){
 
         const string full_command = this->getFullCommand();
 
@@ -130,7 +130,7 @@ namespace workflow{
             });
 
             // Execute the command
-            int exit_code = executor.execute();
+            int exit_code = executor.execute( true, poll_service_callback );
 
             //std::cout << "Command exited with status: " << exit_code << std::endl;
 

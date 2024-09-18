@@ -87,7 +87,7 @@ namespace workflow{
 
 
 
-    void WorkflowRun::run( const bool& keep_running ){
+    void WorkflowRun::run( const bool& keep_running, const std::function<void()>& poll_service_callback ){
 
         // Record the start time
         // auto workflow_start = std::chrono::system_clock::now();
@@ -135,7 +135,7 @@ namespace workflow{
 
                     // Execute the command and capture output
                     WorkflowRunStepCommand workflow_run_step_command( workflow_run_step );
-                    WorkflowRunStepResult result = workflow_run_step_command.run();
+                    WorkflowRunStepResult result = workflow_run_step_command.run( poll_service_callback);
 
                     cout << "Command output: " << result.output << endl;
                     cout << "Command exit code: " << result.exit_code << endl;

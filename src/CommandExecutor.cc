@@ -62,15 +62,15 @@ namespace jetstream {
     }
 
 
-    int CommandExecutor::execute( bool wait_for_completion ){
+    int CommandExecutor::execute( bool wait_for_completion, const std::function<void()>& poll_service_callback ){
 
         int stdout_pipe[2];
         int stderr_pipe[2];
 
-        if (pipe(stdout_pipe) == -1) {
+        if( pipe(stdout_pipe) == -1 ){
             throw std::runtime_error("Failed to create stdout pipe: " + std::string(strerror(errno)));
         }
-        if (pipe(stderr_pipe) == -1) {
+        if( pipe(stderr_pipe) == -1 ){
             throw std::runtime_error("Failed to create stderr pipe: " + std::string(strerror(errno)));
         }
 
@@ -150,24 +150,48 @@ namespace jetstream {
 
             if( wait_for_completion ){
 
-                if (waitpid(pid, &status, 0) == -1) {
-                    throw std::runtime_error(std::string(strerror(errno)));
+                // Timeout loop to wait for child process and service poll
+                while (true) {
+
+                    pid_t result = waitpid(pid, &status, WNOHANG); // Non-blocking wait
+
+                    if (result == 0) {
+                        // Child process still running, sleep for a second (or less)
+                        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+                        // Here you can call your poll-servicing lambda function
+                        if( poll_service_callback ){
+                            poll_service_callback(); // Call the poll service logic
+                        }
+
+                    } else if (result == -1) {
+
+                        // Error in waitpid
+                        throw std::runtime_error( std::string(strerror(errno)) );
+
+                    } else {
+
+                        // Child process has finished
+                        break;
+
+                    }
+
                 }
 
                 // Wait for threads to finish
-                if (stdout_thread.joinable()) {
+                if( stdout_thread.joinable() ){
                     stdout_thread.join();
                 }
-                if (stderr_thread.joinable()) {
+                if( stderr_thread.joinable() ){
                     stderr_thread.join();
                 }
 
-                if (WIFEXITED(status)) {
+                if( WIFEXITED(status) ){
                     return WEXITSTATUS(status);
-                } else if (WIFSIGNALED(status)) {
+                }else if( WIFSIGNALED(status) ){
                     int signal = WTERMSIG(status);
                     throw std::runtime_error("Child process terminated by signal: " + std::to_string(signal));
-                } else {
+                }else{
                     throw std::runtime_error("Child process did not exit normally");
                 }
 
