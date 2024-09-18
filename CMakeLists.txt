@@ -142,6 +142,8 @@ set(JETSTREAM_SOURCES
     src/Common.cc
     src/Observer.cc
     src/JetStream.cc
+    src/args_holder.cc
+    src/CommandExecutor.cc
 
     src/config/JetStreamConfig.cc
     src/config/ElasticSearchWriterConfig.cc

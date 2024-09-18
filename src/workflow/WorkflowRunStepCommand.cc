@@ -25,6 +25,11 @@
 #include <vector>
 #include <sstream>
 
+#include "CommandExecutor.h"
+#include "CommandExecutionException.h"
+#include <iostream>
+#include <map>
+
 
 using std::string;
 
@@ -74,58 +79,43 @@ namespace workflow{
 
         const string full_command = this->getFullCommand();
 
-        // do fork and exec with environment variables
+        try {
+            jetstream::CommandExecutor executor( full_command );
 
-        args_holder args{full_command};
+            // Add arguments
+            // executor.addArgument("-la");
+            // executor.addArgument("/home/user");
 
+            // Set environment variables
+            // executor.addEnvironmentVariable("MY_VAR1", "value1");
 
-        int pipefd[2];
-        if( pipe(pipefd) == -1 ){
-            throw std::runtime_error( "Failed to create pipe: " + std::string(strerror(errno)) );
+            // Set stdout callback
+            string all_output;
+
+            executor.setStdoutCallback([&all_output](const std::string& output) {
+                std::cout << "STDOUT: " << output;
+                all_output += output;
+            });
+
+            // Set stderr callback
+            executor.setStderrCallback([](const std::string& output) {
+                std::cerr << "STDERR: " << output;
+            });
+
+            // Execute the command
+            int exit_code = executor.execute();
+
+            //std::cout << "Command exited with status: " << exit_code << std::endl;
+
+            return WorkflowRunStepResult{ exit_code, all_output };
+            
+        } catch (const jetstream::CommandExecutionException& e) {
+
+            std::cerr << "Execution failed: " << e.what() << std::endl;
+            return 1;
+
         }
 
-        pid_t pid = fork();
-
-        if( pid == -1 ){
-
-            throw std::runtime_error( "Fork failed: " + std::string(strerror(errno)) );
-
-        }else if( pid == 0 ){
-        
-            // Child process
-        
-            close(pipefd[0]);  // Close read end of pipe
-            dup2(pipefd[1], STDOUT_FILENO);
-            dup2(pipefd[1], STDERR_FILENO);
-            close(pipefd[1]);
-
-            execvp(args[0], args.data());
-            // If execvp returns, it must have failed
-            std::cerr << "Exec failed: " << strerror(errno) << std::endl;
-            exit(1);
-
-        } else {
-            
-            // Parent process
-            close(pipefd[1]);  // Close write end of pipe
-
-            // Read output from child
-            char buffer[4096];
-            std::string output;
-            ssize_t count;
-            while( (count = read(pipefd[0], buffer, sizeof(buffer))) > 0 ){
-                output.append(buffer, count);
-            }
-            close(pipefd[0]);
-
-            // Wait for child to finish
-            int status;
-            waitpid( pid, &status, 0 );
-            
-            return WorkflowRunStepResult{ WIFEXITED(status) ? WEXITSTATUS(status) : -1, output };
-
-        }
-    
 
     }
 
@@ -133,3 +123,7 @@ namespace workflow{
 
 }
 }
+
+
+
+
