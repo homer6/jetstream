@@ -51,6 +51,11 @@ namespace jetstream {
         return args_strings.size();
     }
 
+    void args_holder::clear(){
+        args_strings.clear();
+        args_pointers.clear();
+    }
+
     args_holder::~args_holder(){
         // No manual memory management required
     }

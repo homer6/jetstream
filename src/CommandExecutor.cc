@@ -21,37 +21,33 @@ namespace jetstream {
         // Default constructor
     }
 
-    CommandExecutor::CommandExecutor(const std::string& command) {
-        setCommand(command);
+    CommandExecutor::CommandExecutor( const std::string& command ){
+        this->addArguments( command );
     }
 
-    void CommandExecutor::setCommand(const std::string& command) {
-        command_path = command;
-        args = args_holder();
-        args.addArg(command_path); // argv[0]
-    }
-
-    void CommandExecutor::addArgument(const std::string& arg) {
+    void CommandExecutor::addArgument( const std::string& arg ){
         args.addArg(arg);
     }
 
-    void CommandExecutor::addArguments(const std::string& argsString) {
-        args.addArgs(argsString);
+    void CommandExecutor::addArguments( const std::string& args_string ){
+        args.addArgs( args_string );
     }
 
-    void CommandExecutor::addArguments(const std::vector<std::string>& argsVector) {
-        for (const auto& arg : argsVector) {
-            addArgument(arg);
+    void CommandExecutor::addArguments( const std::vector<std::string>& args_vector ){
+        this->args.clear();
+        for( const std::string& arg : args_vector ){
+            this->addArgument( arg );
         }
     }
 
-    void CommandExecutor::addEnvironmentVariable(const std::string& key, const std::string& value) {
-        std::string envVar = key + "=" + value;
-        env.addArg(envVar);
+    void CommandExecutor::addEnvironmentVariable( const std::string& key, const std::string& value ){
+        std::string env_var = key + "=" + value;
+        env.addArg( env_var );
     }
 
-    void CommandExecutor::addEnvironmentVariables(const std::map<std::string, std::string>& envVars) {
-        for (const auto& [key, value] : envVars) {
+    void CommandExecutor::addEnvironmentVariables( const std::map<std::string, std::string>& env_vars ){
+        env.clear();
+        for( const auto& [key, value] : env_vars ){
             addEnvironmentVariable(key, value);
         }
     }
@@ -64,17 +60,8 @@ namespace jetstream {
         stderr_callback = callback;
     }
 
-    void CommandExecutor::prepareExecution() {
-        if (args.size() == 0) {
-            args.addArg(command_path);
-        } else {
-            args[0] = const_cast<char*>(command_path.c_str());
-        }
-    }
 
     int CommandExecutor::execute( bool wait_for_completion ){
-
-        prepareExecution();
 
         int stdout_pipe[2];
         int stderr_pipe[2];
@@ -109,9 +96,9 @@ namespace jetstream {
             // Close parent's pipe ends
             // Close other file descriptors if necessary
 
-            char **envp = env.size() > 0 ? env.data() : environ;
-            if (execve(command_path.c_str(), args.data(), envp) == -1) {
-                perror("execve");
+            //char **envp = env.size() > 0 ? env.data() : environ;
+            if( execve( args.data()[0], args.data(), env.data() ) == -1 ){
+                perror("execve");                
                 _exit(errno); // Use _exit to avoid flushing stdio buffers
             }
 

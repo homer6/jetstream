@@ -18,6 +18,8 @@ namespace jetstream {
             char* operator[](int index);
             int size() const;
 
+            void clear();
+
         private:
             std::vector<std::string> args_strings;
             std::vector<char*> args_pointers;

@@ -12,9 +12,7 @@ namespace jetstream {
 
         public:
             CommandExecutor();
-            explicit CommandExecutor(const std::string& command);
-
-            void setCommand(const std::string& command);
+            explicit CommandExecutor( const std::string& command );
 
             // Add command-line arguments
             void addArgument(const std::string& arg);
@@ -34,14 +32,11 @@ namespace jetstream {
             int execute(bool wait_for_completion = true);
 
         private:
-            std::string command_path;
             args_holder args;
             args_holder env;
 
             std::function<void(const std::string&)> stdout_callback;
             std::function<void(const std::string&)> stderr_callback;
-
-            void prepareExecution();
 
     };
 
