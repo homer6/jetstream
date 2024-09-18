@@ -81,6 +81,5 @@ namespace jetstream{
 		return stringstream.str();
     };
 
-
 }
 
