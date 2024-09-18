@@ -399,7 +399,7 @@ namespace jetstream{
 
 
 
-    std::string get_timestamp( const std::string& format ){
+    std::string get_timestamp( const std::string format ){
 
         if( format.empty() ){
 

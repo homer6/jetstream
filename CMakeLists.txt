@@ -14,6 +14,7 @@ endif()
 # Include the 'include' directory
 include_directories(
     ${CMAKE_SOURCE_DIR}/include
+    include
 )
 
 # Set compile options
@@ -141,6 +142,8 @@ set(JETSTREAM_SOURCES
     src/Common.cc
     src/Observer.cc
     src/JetStream.cc
+    src/args_holder.cc
+    src/CommandExecutor.cc
 
     src/config/JetStreamConfig.cc
     src/config/ElasticSearchWriterConfig.cc
@@ -195,6 +198,11 @@ set(JETSTREAM_SOURCES
 
     src/frontend/view/SearchView.cc
 
+    src/workflow/WorkflowRun.cc
+    src/workflow/WorkflowFactory.cc
+    src/workflow/WorkflowRunStep.cc
+    src/workflow/WorkflowRunStepCommand.cc
+    
     src/Url.cc
     src/UrlList.cc
     src/stopwatch.cc
@@ -208,6 +216,8 @@ set(JETSTREAM_SOURCES
     src/pugixml.cpp
 
     src/jetstream_main.cc
+
+
 )
 
 # Libraries
