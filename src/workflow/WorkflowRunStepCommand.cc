@@ -26,7 +26,6 @@
 #include <sstream>
 
 #include "CommandExecutor.h"
-#include "CommandExecutionException.h"
 #include <iostream>
 #include <map>
 
@@ -79,7 +78,8 @@ namespace workflow{
 
         const string full_command = this->getFullCommand();
 
-        try {
+        try{
+
             jetstream::CommandExecutor executor( full_command );
 
             // Add arguments
@@ -109,10 +109,10 @@ namespace workflow{
 
             return WorkflowRunStepResult{ exit_code, all_output };
             
-        } catch (const jetstream::CommandExecutionException& e) {
+        }catch( const std::runtime_error& e ){
 
             std::cerr << "Execution failed: " << e.what() << std::endl;
-            return 1;
+            throw e;
 
         }
 

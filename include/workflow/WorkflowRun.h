@@ -22,7 +22,7 @@ namespace workflow{
             WorkflowRun( json workflow_run_json, const string handler_name = "" );
 
             virtual void run( const bool& keep_running );
-            virtual void addWorkflowRunStep( const WorkflowRunStep& workflow_run_step, int index = -1 );
+            //virtual void addWorkflowRunStep( const WorkflowRunStep& workflow_run_step, int index = -1 );
             
         protected:
             json workflow_run_json;

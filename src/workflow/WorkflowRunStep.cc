@@ -14,6 +14,12 @@ namespace workflow{
 
     }
 
+    void WorkflowRunStep::run( bool keep_running ){
+
+        throw std::runtime_error("WorkflowRunStep::run() not implemented");
+
+    }
+
 
 }
 }

@@ -199,7 +199,10 @@ set(JETSTREAM_SOURCES
     src/frontend/view/SearchView.cc
 
     src/workflow/WorkflowRun.cc
-
+    src/workflow/WorkflowFactory.cc
+    src/workflow/WorkflowRunStep.cc
+    src/workflow/WorkflowRunStepCommand.cc
+    
     src/Url.cc
     src/UrlList.cc
     src/stopwatch.cc

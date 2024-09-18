@@ -21,7 +21,7 @@ namespace workflow{
         public:
             WorkflowRunStep();
             WorkflowRunStep( json workflow_run_step_json );
-            virtual void run( const bool& keep_running );
+            virtual void run( bool keep_running = true );
 
         protected:
             json workflow_run_step_json;
