@@ -155,8 +155,15 @@ namespace writer{
 
                                     json log_object = json::parse(payload);
 
+                                    auto poll_method = [&](){
+                                        // sleep for 1 second, then poll
+                                        cout << "Polling..." << endl;
+                                        std::this_thread::sleep_for(std::chrono::seconds(1));
+                                        kafka_consumer.poll();                                        
+                                    };
+
                                     WorkflowRun workflow_run( log_object, "veba-preprocess" );
-                                    workflow_run.run(true);
+                                    workflow_run.run( true, poll_method );
 
                                     cout << log_object.dump(4) << endl;
 
