@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <poll.h>
+#include <stdexcept>
 
 extern char **environ; // For accessing the environment
 
