@@ -12,6 +12,11 @@
 
 // Add necessary includes
 #include <iostream>
+using std::cout;
+using std::cerr;
+using std::endl;
+
+
 #include <sstream>
 
 
@@ -131,6 +136,9 @@ namespace workflow{
                     // Execute the command and capture output
                     WorkflowRunStepCommand workflow_run_step_command( workflow_run_step );
                     WorkflowRunStepResult result = workflow_run_step_command.run();
+
+                    cout << "Command output: " << result.output << endl;
+                    cout << "Command exit code: " << result.exit_code << endl;
 
                     // Record the end time
                     auto step_end = std::chrono::system_clock::now();

@@ -48,6 +48,9 @@ using std::map;
 
 #include <thread>
 
+#include "workflow/WorkflowRun.h"
+using jetstream::workflow::WorkflowRun;
+
 
 namespace jetstream{
 namespace writer{
@@ -151,6 +154,9 @@ namespace writer{
                                     const string payload = message.get_payload();
 
                                     json log_object = json::parse(payload);
+
+                                    WorkflowRun workflow_run( log_object, "veba-preprocess" );
+                                    workflow_run.run(true);
 
                                     cout << log_object.dump(4) << endl;
 
