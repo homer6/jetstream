@@ -37,6 +37,13 @@ using std::endl;
 
 
 
+#include <string>
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
+
+
 namespace jetstream{
 
 
@@ -390,41 +397,53 @@ namespace jetstream{
 
 
 
-    string get_timestamp( const string format ){
-
-    	if( format.size() == 0 ){
-
-	        //get timestamp (nanoseconds)
-	        string current_time_string = "0.0";
-	        timespec current_time;
-	        if( clock_gettime(CLOCK_REALTIME, &current_time) == 0 ){
-
-	            char buffer[50];
-
-	            // thanks to https://stackoverflow.com/a/8304728/278976
-	            sprintf( buffer, "%lld.%.9ld", (long long)current_time.tv_sec, current_time.tv_nsec );
-	            current_time_string = string(buffer);
-
-	        }
-
-	        return current_time_string;
-
-    	}
 
 
-		time_t rawtime;
-		struct tm * timeinfo;
-		char buffer[1024];
+    std::string get_timestamp( const std::string& format ){
 
-		time( &rawtime );
-		//timeinfo = localtime( &rawtime );
-		timeinfo = gmtime( &rawtime );
+        if( format.empty() ){
 
-		strftime( buffer, 1024, format.c_str(), timeinfo );
+            // Get high-resolution current time
+            auto now = std::chrono::system_clock::now();
+            auto epoch = now.time_since_epoch();
 
-		return string(buffer);
+            // Extract seconds and nanoseconds
+            auto seconds = std::chrono::duration_cast<std::chrono::seconds>(epoch).count();
+            auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(epoch).count() % 1000000000;
+
+            // Format the timestamp
+            std::ostringstream oss;
+            oss << seconds << '.' << std::setw(9) << std::setfill('0') << nanoseconds;
+
+            return oss.str();
+            
+        }else{
+
+            // Get current time
+            auto now = std::chrono::system_clock::now();
+            std::time_t rawtime = std::chrono::system_clock::to_time_t(now);
+
+            // Convert to UTC time structure
+            struct tm timeinfo;
+            #if defined(_WIN32) || defined(_WIN64)
+                    gmtime_s(&timeinfo, &rawtime); // Use gmtime_s on Windows
+            #else
+                    gmtime_r(&rawtime, &timeinfo); // Use gmtime_r on POSIX systems
+            #endif
+
+            // Format the time according to the provided format string
+            char buffer[1024];
+            if( std::strftime(buffer, sizeof(buffer), format.c_str(), &timeinfo) ){
+                return std::string(buffer);
+            }else{
+                // Handle error if formatting fails
+                throw std::runtime_error("Failed to format timestamp");
+            }
+
+        }
 
     }
+
 
 
 
