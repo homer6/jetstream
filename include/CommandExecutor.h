@@ -29,7 +29,7 @@ namespace jetstream {
 
             // Execute the command
             // Throws exceptions on errors
-            int execute(bool wait_for_completion = true);
+            int execute(bool wait_for_completion = true, const std::function<void()>& poll_service_callback = nullptr );
 
         private:
             args_holder args;

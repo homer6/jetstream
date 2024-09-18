@@ -12,6 +12,8 @@ using std::map;
 #include "workflow/WorkflowRunStep.h"
 #include "workflow/WorkflowRunStepResult.h"
 
+#include <functional>
+
 namespace jetstream{
 namespace workflow{
 
@@ -19,7 +21,7 @@ namespace workflow{
 
         public:
             WorkflowRunStepCommand( shared_ptr<WorkflowRunStep> workflow_run_step );
-            WorkflowRunStepResult run();
+            WorkflowRunStepResult run( const std::function<void()>& poll_service_callback = nullptr );
 
             map<string,string> getEnvironmentVariables() const;
 
