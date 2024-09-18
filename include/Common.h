@@ -82,5 +82,42 @@ namespace jetstream{
     };
 
 
+    struct args_holder{
+
+        args_holder( const std::string& full_command ){
+            addArgs(full_command);
+        }
+
+        void addArgs( const std::string& full_command ){
+
+            std::istringstream iss(full_command);
+            std::string token;
+            while( iss >> token ){
+                args.push_back(strdup(token.c_str()));
+            }
+            args.push_back(nullptr);
+
+        }
+
+        char** data(){
+            return args.data();
+        }
+
+        ~args_holder(){
+            for( char* arg : args ){
+                if( arg != nullptr ){
+                    free(arg);
+                }
+            }
+        }
+
+        char* operator[] (int index){
+            return args[index];
+        }
+
+        std::vector<char*> args;
+
+    };
+
 }
 
