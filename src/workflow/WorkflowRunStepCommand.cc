@@ -74,6 +74,30 @@ namespace workflow{
 
 
 
+    std::map<string,string> WorkflowRunStepCommand::getEnvironmentVariables() const{
+
+        std::map<string,string> env_vars;
+
+        if( !this->workflow_run_step ){
+            throw std::runtime_error("WorkflowRunStepCommand has no WorkflowRunStep");
+        }
+
+        const json& workflow_run_step_json = this->workflow_run_step->workflow_run_step_json;
+
+        // Extract environment variables
+        if( workflow_run_step_json.contains("environment") ){
+            auto environment = workflow_run_step_json["environment"];
+            for( const auto& [key, value] : environment.items() ){
+                env_vars[key] = value.get<std::string>();
+            }
+        }
+
+        return env_vars;
+
+    }
+
+
+
     WorkflowRunStepResult WorkflowRunStepCommand::run(){
 
         const string full_command = this->getFullCommand();
@@ -87,6 +111,9 @@ namespace workflow{
             // executor.addArgument("/home/user");
 
             // Set environment variables
+            auto env_vars = this->getEnvironmentVariables();
+            executor.addEnvironmentVariables( env_vars );
+
             // executor.addEnvironmentVariable("MY_VAR1", "value1");
 
             // Set stdout callback
