@@ -1,0 +1,9 @@
+[submodule "dependencies/librdkafka"]
+	path = dependencies/librdkafka
+	url = https://github.com/edenhill/librdkafka.git
+[submodule "dependencies/cppkafka"]
+	path = dependencies/cppkafka
+	url = https://github.com/mfontanini/cppkafka.git
+[submodule "dependencies/libpqxx"]
+	path = dependencies/libpqxx
+	url = https://github.com/jtv/libpqxx.git
