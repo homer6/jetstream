@@ -7,3 +7,9 @@
 [submodule "dependencies/libpqxx"]
 	path = dependencies/libpqxx
 	url = https://github.com/jtv/libpqxx.git
+[submodule "dependencies/kubernetes-c"]
+	path = dependencies/kubernetes-c
+	url = https://github.com/homer6/kubernetes-c.git
+[submodule "dependencies/kubepp"]
+	path = dependencies/kubepp
+	url = https://github.com/homer6/kubepp.git
