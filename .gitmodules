@@ -13,3 +13,6 @@
 [submodule "dependencies/kubepp"]
 	path = dependencies/kubepp
 	url = https://github.com/homer6/kubepp.git
+[submodule "dependencies/cyrus-sasl"]
+	path = dependencies/cyrus-sasl
+	url = https://github.com/cyrusimap/cyrus-sasl.git

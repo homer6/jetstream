@@ -68,7 +68,7 @@ For detailed installation instructions, please refer to the following guides:
 You can build Jetstream using Docker to containerize the application:
 
 ```bash
-git clone https://github.com/homer6/jetstream.git
+git clone --recursive https://github.com/homer6/jetstream.git
 cd jetstream
 docker build -t jetstream:latest .
 ```
