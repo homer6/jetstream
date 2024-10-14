@@ -74,7 +74,7 @@ git config --global alias.subup "submodule update --init --recursive"
 git clone --recursive https://github.com/homer6/jetstream.git
 cd jetstream
 git subup
-docker build -t jetstream:latest .
+docker build -t jetstream:latest -t homer6/jetstream:latest .
 ```
 
 To build and push the Docker image:
