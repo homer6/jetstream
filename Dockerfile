@@ -7,9 +7,9 @@ RUN apt-get update && \
         build-essential \
         cmake \
         git \
+        libboost-all-dev \
         python3-pip && \
-    pip3 install conan && \
-    rm -rf /var/lib/apt/lists/*
+    pip3 install conan --upgrade
 
 # Set the working directory
 WORKDIR /app
@@ -18,13 +18,11 @@ WORKDIR /app
 COPY . .
 
 # Install packages using Conan
-RUN conan install . --build=missing
-
-# Build the project
-RUN conan build .
+RUN conan profile detect
+RUN conan install . --build=*
 
 # Expose the port (if applicable)
 EXPOSE 8080
 
 # Command to run the application
-CMD ["./build/bin/jetstream"]
+CMD ["/app/jetstream"]
