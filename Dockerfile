@@ -116,7 +116,7 @@ RUN apt-get update && apt-get install -y \
 
 # Copy built binaries and necessary files from build stage
 COPY --from=build /usr/local/lib /usr/local/lib
-COPY --from=build /app/build/jetstream /usr/local/bin/jetstream
+COPY --from=build /app/jetstream /usr/local/bin/jetstream
 
 # Update library cache
 RUN ldconfig
