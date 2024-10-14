@@ -16,3 +16,6 @@
 [submodule "dependencies/cyrus-sasl"]
 	path = dependencies/cyrus-sasl
 	url = https://github.com/cyrusimap/cyrus-sasl.git
+[submodule "dependencies/libyaml"]
+	path = dependencies/libyaml
+	url = https://github.com/yaml/libyaml

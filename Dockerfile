@@ -48,16 +48,42 @@ RUN ./autogen.sh && \
     make install && \
     ldconfig
 
-# Build and install kubernetes-c
-WORKDIR /app/dependencies/kubernetes-c
-RUN cmake . && \
+# Install pre-requisites for kubernetes-c
+RUN apt-get update && apt-get install -y \
+    libssl-dev \
+    libcurl4-openssl-dev \
+    libwebsockets-dev \
+    uncrustify
+
+# Build and install libyaml
+WORKDIR /app/dependencies/libyaml
+RUN mkdir build && \
+    cd build && \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON .. && \
     make -j$(nproc) && \
     make install && \
     ldconfig
 
+# Build kubernetes-c
+WORKDIR /app/dependencies/kubernetes-c/kubernetes
+RUN mkdir build && \
+    cd build && \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local .. && \
+    make -j$(nproc) && \
+    make install && \
+    ldconfig
+
+# Add dependencies for kubepp
+RUN apt-get update && apt-get install -y \
+    libspdlog-dev \
+    libfmt-dev
+
 # Build and install kubepp
 WORKDIR /app/dependencies/kubepp
-RUN cmake . && \
+RUN cmake . \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DCMAKE_PREFIX_PATH="/usr/lib/x86_64-linux-gnu/cmake/fmt;/usr/lib/x86_64-linux-gnu/cmake/spdlog" && \
     make -j$(nproc) && \
     make install && \
     ldconfig
