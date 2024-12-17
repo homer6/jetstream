@@ -31,3 +31,6 @@
 [submodule "dependencies/uncrustify"]
 	path = dependencies/uncrustify
 	url = https://github.com/uncrustify/uncrustify.git
+[submodule "dependencies/libcurl"]
+	path = dependencies/libcurl
+	url = https://github.com/curl/curl.git
