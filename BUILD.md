@@ -94,10 +94,10 @@ cd ../../
 ```sh
 cd dependencies/spdlog
 mkdir build && cd build
-cmake ..
+cmake -DCMAKE_CXX_FLAGS="-fPIC" -DSPDLOG_BUILD_SHARED=OFF ..
 make -j$(nproc)
 sudo make install
-cd ../../
+cd ../../../
 ```
 
 ### libwebsockets
@@ -137,6 +137,23 @@ rm -rf build
 cd ../../
 ```
 
+### libcurl
+
+```sh
+cd dependencies/libcurl
+mkdir build && cd build
+sudo apt-get update
+sudo apt-get install libpsl-dev
+cmake ..
+make -j$(nproc)
+sudo make install
+cd ..
+rm -rf build
+cd ../../
+```
+
+
+
 ### kubernetes-c
 
 ```sh
@@ -155,6 +172,7 @@ cd ../../../
 ### kubepp
 
 ```sh
+sudo apt-get install libcurl4-openssl-dev
 cd dependencies/kubepp/build
 cmake ..
 make -j$(nproc)
