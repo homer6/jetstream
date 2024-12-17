@@ -19,3 +19,15 @@
 [submodule "dependencies/libyaml"]
 	path = dependencies/libyaml
 	url = https://github.com/yaml/libyaml
+[submodule "dependencies/boost"]
+	path = dependencies/boost
+	url = https://github.com/boostorg/boost.git
+[submodule "dependencies/spdlog"]
+	path = dependencies/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "dependencies/libwebsockets"]
+	path = dependencies/libwebsockets
+	url = https://github.com/warmcat/libwebsockets.git
+[submodule "dependencies/uncrustify"]
+	path = dependencies/uncrustify
+	url = https://github.com/uncrustify/uncrustify.git
