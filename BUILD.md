@@ -42,6 +42,22 @@ git clean -fd
 cd ../../
 ```
 
+### libcurl
+
+```sh
+cd dependencies/libcurl
+mkdir build && cd build
+sudo apt-get update
+sudo apt-get install -y libpsl-dev
+cmake ..
+make -j$(nproc)
+sudo make install
+cd ..
+rm -rf build
+cd ../../
+```
+
+
 ### librdkafka
 
 ```sh
@@ -137,20 +153,7 @@ rm -rf build
 cd ../../
 ```
 
-### libcurl
 
-```sh
-cd dependencies/libcurl
-mkdir build && cd build
-sudo apt-get update
-sudo apt-get install libpsl-dev
-cmake ..
-make -j$(nproc)
-sudo make install
-cd ..
-rm -rf build
-cd ../../
-```
 
 
 
@@ -172,8 +175,9 @@ cd ../../../
 ### kubepp
 
 ```sh
-sudo apt-get install libcurl4-openssl-dev
-cd dependencies/kubepp/build
+#sudo apt-get install libcurl4-openssl-dev
+cd dependencies/kubepp/
+mkdir build && cd build
 cmake ..
 make -j$(nproc)
 sudo make install
@@ -191,6 +195,7 @@ Once all dependencies are in place:
 mkdir build && cd build
 cmake ..
 make -j$(nproc)
+sudo ldconfig
 sudo make install
 ```
 

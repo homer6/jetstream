@@ -6,6 +6,8 @@ project(jetstream CXX C)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+include(GNUInstallDirs)  # Provides standard installation directories
+
 # Handle CMP0167 policy for FindBoost
 if(POLICY CMP0167)
   cmake_policy(SET CMP0167 OLD)
@@ -27,7 +29,6 @@ set(JETSTREAM_COMPILE_OPTIONS
     -O3
     -DCPPHTTPLIB_OPENSSL_SUPPORT
     -DCPPHTTPLIB_ZLIB_SUPPORT
-    # -g
 )
 
 # Find pkg-config
@@ -52,7 +53,6 @@ set_pkg_config_path(openssl@3 openssl)
 
 # Find Boost libraries
 find_package(Boost REQUIRED COMPONENTS system filesystem)
-
 if(Boost_FOUND)
     message(STATUS "Found Boost: ${Boost_VERSION}")
     include_directories(${Boost_INCLUDE_DIRS})
@@ -62,7 +62,6 @@ endif()
 
 # Find OpenSSL
 find_package(OpenSSL REQUIRED)
-
 if(OPENSSL_FOUND)
     message(STATUS "Found OpenSSL: ${OPENSSL_VERSION}")
     include_directories(${OPENSSL_INCLUDE_DIR})
@@ -78,7 +77,6 @@ if(RDKAFKA_FOUND)
     message(STATUS "RDKAFKA_LIBRARY_DIRS: ${RDKAFKA_LIBRARY_DIRS}")
     include_directories(${RDKAFKA_INCLUDE_DIRS})
     link_directories(${RDKAFKA_LIBRARY_DIRS})
-    # Use full path to the library
     find_library(RDKAFKA_LIB NAMES rdkafka HINTS ${RDKAFKA_LIBRARY_DIRS})
     if(RDKAFKA_LIB)
         message(STATUS "Found rdkafka library at: ${RDKAFKA_LIB}")
@@ -118,7 +116,6 @@ if(LIBPQ_FOUND)
     message(STATUS "LIBPQ_LIBRARY_DIRS: ${LIBPQ_LIBRARY_DIRS}")
     include_directories(${LIBPQ_INCLUDE_DIRS})
     link_directories(${LIBPQ_LIBRARY_DIRS})
-    # Use full path to the library
     find_library(LIBPQ_LIB NAMES pq HINTS ${LIBPQ_LIBRARY_DIRS})
     if(LIBPQ_LIB)
         message(STATUS "Found libpq library at: ${LIBPQ_LIB}")
@@ -147,7 +144,6 @@ set(JETSTREAM_SOURCES
     src/JetStream.cc
     src/args_holder.cc
     src/CommandExecutor.cc
-
     src/config/JetStreamConfig.cc
     src/config/ElasticSearchWriterConfig.cc
     src/config/LogglyWriterConfig.cc
@@ -155,69 +151,50 @@ set(JETSTREAM_SOURCES
     src/config/KafkaWriterConfig.cc
     src/config/IngestWriterConfig.cc
     src/config/S3WriterConfig.cc
-
     src/writer/ElasticSearchWriter.cc
     src/writer/LogglyWriter.cc
     src/writer/KubeWriter.cc
     src/writer/KafkaWriter.cc
     src/writer/IngestWriter.cc
     src/writer/S3Writer.cc
-
     src/task/RekeyTask.cc
     src/task/TaskFactory.cc
-
     src/ingest/LogSender.cc
     src/ingest/LogSenderAttempt.cc
     src/ingest/LogSplitter.cc
     src/ingest/IngestWriterExporter.cc
-
     src/parser/GizmoParser.cc
-
     src/client/S3Client.cc
     src/client/KafkaProducer.cc
     src/client/HttpConnection.cc
     src/client/TypesenseClient.cc
     src/client/PostgresClient.cc
-
     src/server/HttpServer.cc
     src/server/ApiServer.cc
     src/server/Session.cc
-
     src/server/model/FieldSet.cc
     src/server/model/Model.cc
-
     src/server/model/Gizmo.cc
-
     src/server/collection/GizmoSet.cc
     src/server/collection/ModelSet.cc
     src/server/collection/SearchableModelSet.cc
-
     src/server/event/EventRouter.cc
-
     src/server/service/TypesenseService.cc
     src/server/service/PostgresService.cc
-
     src/server/search/SearchQuery.cc
-
     src/frontend/view/SearchView.cc
-
     src/workflow/WorkflowRun.cc
     src/workflow/WorkflowFactory.cc
     src/workflow/WorkflowRunStep.cc
     src/workflow/WorkflowRunStepCommand.cc
-    
     src/Url.cc
     src/UrlList.cc
     src/stopwatch.cc
-
     src/observability/prometheus/Metric.cc
     src/observability/prometheus/Registry.cc
-
     src/data/DataAugmenter.cc
     src/data/GizmoDataAugmenter.cc
-
     src/pugixml.cpp
-
     src/jetstream_main.cc
 
 )
@@ -236,23 +213,21 @@ set(JETSTREAM_LIBS
 if(WIN32)
     # Windows-specific libraries
     list(APPEND JETSTREAM_LIBS ws2_32)
-    # Define any Windows-specific compile options if needed
     set(PLATFORM_COMPILE_OPTIONS)
 else()
     # POSIX platforms (Linux, macOS)
     find_package(Threads REQUIRED)
-    list(APPEND JETSTREAM_LIBS Threads::Threads)
-    list(APPEND JETSTREAM_LIBS dl z)
+    list(APPEND JETSTREAM_LIBS Threads::Threads dl z)
     set(PLATFORM_COMPILE_OPTIONS)
 endif()
 
-# Create executable
+# Create the executable
 add_executable(jetstream ${JETSTREAM_SOURCES})
 
-# Link libraries to the executable
+# Link libraries
 target_link_libraries(jetstream PRIVATE ${JETSTREAM_LIBS})
 
-# Set compile options for the target
+# Set compile options
 target_compile_options(jetstream PRIVATE ${JETSTREAM_COMPILE_OPTIONS} ${PLATFORM_COMPILE_OPTIONS})
 
 # Set rpath if necessary
@@ -262,3 +237,6 @@ if(NOT WIN32)
         BUILD_WITH_INSTALL_RPATH TRUE
     )
 endif()
+
+# Add an install rule to place the jetstream binary in the standard bin directory
+install(TARGETS jetstream RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
