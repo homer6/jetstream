@@ -16,10 +16,7 @@ endif()
 # Include the 'include' directory
 include_directories(
     ${CMAKE_SOURCE_DIR}/include
-<<<<<<< HEAD
-=======
     include
->>>>>>> upstream/master
 )
 
 # Set compile options
