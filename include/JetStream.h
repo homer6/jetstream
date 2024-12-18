@@ -65,6 +65,8 @@ namespace jetstream{
 
             string getDefaultPostgresUrl();
 
+			string getDefaultHandlerName();
+
 
 	     	bool keep_running = true;
 

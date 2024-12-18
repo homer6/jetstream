@@ -113,6 +113,11 @@ namespace workflow{
             }
             const string step_status = step["status"].get<string>();
 
+            if( this->stepWasExecuted() ){
+                // set the next step to "starting" and exit
+                step["status"] = "starting";
+                return;
+            }
 
             if( step_status == "starting" && step_name == this->handler_name ){
                 
@@ -135,10 +140,10 @@ namespace workflow{
 
                     // Execute the command and capture output
                     WorkflowRunStepCommand workflow_run_step_command( workflow_run_step );
-                    WorkflowRunStepResult result = workflow_run_step_command.run( poll_service_callback);
+                    this->result = workflow_run_step_command.run( poll_service_callback);
 
-                    cout << "Command output: " << result.output << endl;
-                    cout << "Command exit code: " << result.exit_code << endl;
+                    cout << "Command output: " << this->result.output << endl;
+                    cout << "Command exit code: " << this->result.exit_code << endl;
 
                     // Record the end time
                     auto step_end = std::chrono::system_clock::now();
@@ -149,19 +154,19 @@ namespace workflow{
                     auto duration = std::chrono::duration_cast<std::chrono::seconds>(step_end - step_start).count();
                     step["duration"] = duration;
 
-                    if( result.exit_code == 0 ){
+                    if( this->result.exit_code == 0 ){
 
                         // Command succeeded
                         step["status"] = "completed";
                         // Optionally, you can store the output
-                        step["output"] = result.output;
+                        step["output"] = this->result.output;
 
                     }else{
 
                         // Command failed
                         step["status"] = "failed";
                         // Store the error output
-                        step["error"] = result.output;
+                        step["error"] = this->result.output;
                         
                         // Optionally, you can decide to stop the workflow
                         if( !keep_running ){
@@ -180,6 +185,8 @@ namespace workflow{
                     }
 
                 }
+
+                this->executed_step = std::make_shared<WorkflowRunStep>(step);                
 
             }
 
@@ -218,7 +225,30 @@ namespace workflow{
     }
 
 
+    bool WorkflowRun::stepWasExecuted() const{
 
+        return this->executed_step != nullptr;
+
+    }
+
+    json WorkflowRun::getWorkflowRunJson() const{
+
+        return this->workflow_run_json;
+
+    }
+
+    WorkflowRunStepResult WorkflowRun::getResult() const{
+
+        return this->result;
+
+    }
+
+
+    shared_ptr<WorkflowRunStep> WorkflowRun::getExecutedStep() const{
+
+        return this->executed_step;
+
+    }
 
 
 }

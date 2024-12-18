@@ -42,6 +42,8 @@ namespace config {
 
         this->setConfigSetting( "postgres_url", this->jetstream->getDefaultPostgresUrl() );
 
+        this->setConfigSetting( "handler_name", this->jetstream->getDefaultHandlerName() );
+
 
     }
 

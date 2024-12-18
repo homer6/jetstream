@@ -116,6 +116,7 @@ namespace writer{
             ingest::LogSender sender{ this->config, ingest_writer_ptr->exporter };
 
             const string user_id = config.getConfigSetting("user_id");
+            const string handler_name = config.getConfigSetting("handler_name");
 
 
 			while( keep_running ){
@@ -162,8 +163,52 @@ namespace writer{
                                         kafka_consumer.poll();                                        
                                     };
 
-                                    WorkflowRun workflow_run( log_object, "veba-preprocess" );
+                                    WorkflowRun workflow_run( log_object, handler_name );
                                     workflow_run.run( true, poll_method );
+
+                                    if( workflow_run.stepWasExecuted() ){
+
+                                        if( workflow_run.getResult().exit_code != 0 ){
+                                            cerr << "JetStream: workflow failed with exit code: " << workflow_run.getResult().exit_code << endl;
+                                        }else{
+                                            cout << "JetStream: workflow step executed successfully." << endl;
+                                            auto executed_step = workflow_run.getExecutedStep();
+                                            if( !executed_step ){
+                                                throw std::runtime_error("JetStream: executed step is null.");
+                                            }
+
+                                            auto output_topics = executed_step->getOutputTopics();
+                                            for( const string output_topic : output_topics ){
+                                                
+                                                //send the step json to each output topic
+                                                const json& step_json = workflow_run.getWorkflowRunJson();
+                                                const string payload = step_json.dump();
+                                                
+                                                // Create the config
+                                                cppkafka::Configuration kafka_producer_config = {
+                                                    { "metadata.broker.list", config.getConfigSetting("brokers") }
+                                                };
+
+                                                // Create the producer
+                                                cppkafka::Producer kafka_producer( kafka_producer_config );
+                                                //kafka_producer.set_payload_policy( cppkafka::PayloadPolicy::BLOCK_ON_FULL_QUEUE );
+
+                                                cppkafka::MessageBuilder message_builder( output_topic );
+
+                                                message_builder.payload( payload );
+                                                
+                                                kafka_producer.produce( message_builder );
+
+                                                kafka_producer.flush();
+
+                                            }
+                                        }
+
+                                    }
+                                    
+
+
+
 
                                     cout << log_object.dump(4) << endl;
 

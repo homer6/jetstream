@@ -709,6 +709,18 @@ namespace jetstream{
     }
 
 
+	string JetStream::getDefaultHandlerName(){
+
+		string default_value = this->getEnvironmentVariable( "JETSTREAM_HANDLER_NAME" );
+		if( default_value.size() > 0 ){
+			return default_value;
+		}
+
+		return "na";
+
+	}
+
+
 	void JetStream::loadEnvironmentVariables(){
 
 		int i = 0;

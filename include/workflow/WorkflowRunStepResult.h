@@ -9,6 +9,8 @@ namespace workflow{
     class WorkflowRunStepResult{
             
         public:
+            WorkflowRunStepResult(){}
+
             WorkflowRunStepResult( int exit_code, const string& output )
                 :exit_code(exit_code), output(output)
             {

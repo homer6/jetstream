@@ -49,6 +49,8 @@ namespace config{
 				"  -dau, --destination-auth-url [URL]     the full url of the auth server (to recieve JWT tokens).\n"
 				"                                         eg. ('https://target.hostname.com/api/user/login'). Defaults to ''. \n"
 				"                                         (optional; defaults to ENV JETSTREAM_DESTINATION_AUTH_URL)\n"
+				"  -ha, --handler-name [NAME]             the name of the workflows handler.\n"
+				"                                         (option; defaults to na)\n"
 		<< endl;
 
   	}

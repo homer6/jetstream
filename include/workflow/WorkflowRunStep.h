@@ -10,6 +10,9 @@ using std::string;
 #include <memory>
 using std::shared_ptr;
 
+#include <vector>
+using std::vector;
+
 
 namespace jetstream{
 namespace workflow{
@@ -22,6 +25,7 @@ namespace workflow{
             WorkflowRunStep();
             WorkflowRunStep( json workflow_run_step_json );
             virtual void run( bool keep_running = true );
+            vector<string> getOutputTopics() const;
 
         protected:
             json workflow_run_step_json;
