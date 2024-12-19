@@ -190,9 +190,6 @@ cd ../../../
 ```sh
 cd dependencies/aws-sdk-cpp/
 mkdir build && cd build
-# Ensure required packages for AWS SDK:
-# sudo apt-get install -y libssl-dev libcurl4-openssl-dev
-
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_ONLY="s3" ..
 make -j$(nproc)
 sudo make install

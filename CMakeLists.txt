@@ -124,6 +124,16 @@ else()
     message(FATAL_ERROR "libpq not found")
 endif()
 
+
+# find AWS SDK
+find_package(AWSSDK REQUIRED COMPONENTS s3)
+
+#add_executable(myapp main.cpp)
+#target_link_libraries(myapp ${AWSSDK_LIBRARIES})
+#target_include_directories(myapp PUBLIC ${AWSSDK_INCLUDE_DIRS})
+
+
+
 # Additional include directories
 include_directories(
     ${OPENSSL_INCLUDE_DIR}
@@ -132,6 +142,7 @@ include_directories(
     ${PQXX_INCLUDE_DIRS}
     ${LIBPQ_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
+    ${AWSSDK_INCLUDE_DIRS}
 )
 
 # Source files
@@ -204,6 +215,7 @@ set(JETSTREAM_LIBS
     ${OPENSSL_LIBRARIES}
     ${PQXX_LIBRARIES}
     ${LIBPQ_LIBRARIES}
+    ${AWSSDK_LIBRARIES}
 )
 
 # Handle platform-specific settings
