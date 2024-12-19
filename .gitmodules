@@ -34,3 +34,6 @@
 [submodule "dependencies/libcurl"]
 	path = dependencies/libcurl
 	url = https://github.com/curl/curl.git
+[submodule "dependencies/aws-sdk-cpp"]
+	path = dependencies/aws-sdk-cpp
+	url = https://github.com/aws/aws-sdk-cpp.git
