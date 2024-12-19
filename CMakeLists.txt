@@ -191,6 +191,7 @@ set(JETSTREAM_SOURCES
     src/server/service/PostgresService.cc
     src/server/search/SearchQuery.cc
     src/frontend/view/SearchView.cc
+    src/workflow/WorkflowRunContext.cc
     src/workflow/WorkflowRun.cc
     src/workflow/WorkflowFactory.cc
     src/workflow/WorkflowRunStep.cc

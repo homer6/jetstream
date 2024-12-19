@@ -163,6 +163,11 @@ namespace writer{
                                         kafka_consumer.poll();                                        
                                     };
 
+                                    //pre-run
+                                    cout << log_object.dump() << endl;
+                                   
+
+
                                     WorkflowRun workflow_run( log_object, handler_name );
                                     workflow_run.run( true, poll_method );
 
