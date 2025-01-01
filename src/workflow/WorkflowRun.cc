@@ -136,44 +136,99 @@ namespace workflow{
                 std::time_t step_start_time = std::chrono::system_clock::to_time_t(step_start);
                 step["start_time"] = jetstream::get_timestamp();
 
-                try {
+                try{
 
-                    // Execute the command and capture output
-                    WorkflowRunStepCommand workflow_run_step_command( workflow_run_step );
-                    this->result = workflow_run_step_command.run( poll_service_callback);
+                    WorkflowRunStepCommandListPtr commands = workflow_run_step->getCommands();
 
-                    cout << "Command output: " << this->result.output << endl;
-                    cout << "Command exit code: " << this->result.exit_code << endl;
-
-                    // Record the end time
-                    auto step_end = std::chrono::system_clock::now();
-                    std::time_t step_end_time = std::chrono::system_clock::to_time_t(step_end);
-                    step["end_time"] = jetstream::get_timestamp();
-
-                    // Calculate duration
-                    auto duration = std::chrono::duration_cast<std::chrono::seconds>(step_end - step_start).count();
-                    step["duration"] = duration;
-
-                    if( this->result.exit_code == 0 ){
-
-                        // Command succeeded
-                        step["status"] = "completed";
-                        // Optionally, you can store the output
-                        step["output"] = this->result.output;
-
-                    }else{
-
-                        // Command failed
-                        step["status"] = "failed";
-                        // Store the error output
-                        step["error"] = this->result.output;
+                    for( const auto& command : *commands ){
                         
-                        // Optionally, you can decide to stop the workflow
-                        if( !keep_running ){
-                            break;
+                        // Execute the command and capture output
+                        this->result = command->run( poll_service_callback );
+
+                        cout << "Command output: " << this->result.output << endl;
+                        cout << "Command exit code: " << this->result.exit_code << endl;
+
+                        if( this->result.exit_code > 0 ){
+                            // Command failed
+                            step["status"] = "failed";
+                            // Store the error output
+                            step["error"] = this->result.output;
+
+                            string full_command = command->getFullCommand();
+
+                            throw std::runtime_error( "Command failed: " + full_command );
+                        }
+
+                        // Record the end time
+                        auto step_end = std::chrono::system_clock::now();
+                        std::time_t step_end_time = std::chrono::system_clock::to_time_t(step_end);
+                        step["end_time"] = jetstream::get_timestamp();
+
+                        // Calculate duration
+                        auto duration = std::chrono::duration_cast<std::chrono::seconds>(step_end - step_start).count();
+                        step["duration"] = duration;
+
+                        if( this->result.exit_code == 0 ){
+
+                            // Command succeeded
+                            step["status"] = "completed";
+                            // Optionally, you can store the output
+                            step["output"] = this->result.output;
+
+                        }else{
+
+                            // Command failed
+                            step["status"] = "failed";
+                            // Store the error output
+                            step["error"] = this->result.output;
+                            
+                            // Optionally, you can decide to stop the workflow
+                            if( !keep_running ){
+                                break;
+                            }
+
                         }
 
                     }
+
+                    /*
+                        // Execute the command and capture output
+                        WorkflowRunStepCommand workflow_run_step_command( workflow_run_step );
+                        this->result = workflow_run_step_command.run( poll_service_callback );
+
+                        cout << "Command output: " << this->result.output << endl;
+                        cout << "Command exit code: " << this->result.exit_code << endl;
+
+                        // Record the end time
+                        auto step_end = std::chrono::system_clock::now();
+                        std::time_t step_end_time = std::chrono::system_clock::to_time_t(step_end);
+                        step["end_time"] = jetstream::get_timestamp();
+
+                        // Calculate duration
+                        auto duration = std::chrono::duration_cast<std::chrono::seconds>(step_end - step_start).count();
+                        step["duration"] = duration;
+
+                        if( this->result.exit_code == 0 ){
+
+                            // Command succeeded
+                            step["status"] = "completed";
+                            // Optionally, you can store the output
+                            step["output"] = this->result.output;
+
+                        }else{
+
+                            // Command failed
+                            step["status"] = "failed";
+                            // Store the error output
+                            step["error"] = this->result.output;
+                            
+                            // Optionally, you can decide to stop the workflow
+                            if( !keep_running ){
+                                break;
+                            }
+
+                        }
+                    */
 
                 }catch( const std::exception& e ){
 

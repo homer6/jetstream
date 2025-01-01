@@ -28,7 +28,6 @@ namespace workflow{
             json workflow_run_json;
             string handler_name;
 
-            vector<string> global_input_files;
             vector<string> input_files;
             vector<string> output_files;
 

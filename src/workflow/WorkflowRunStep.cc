@@ -42,5 +42,31 @@ namespace workflow{
     }
 
 
+    WorkflowRunStepCommandListPtr WorkflowRunStep::getCommands() const{
+
+        WorkflowRunStepCommandListPtr commands = std::make_shared<WorkflowRunStepCommandList>();
+
+        if( this->workflow_run_step_json.contains("commands") ){
+
+            if( !this->workflow_run_step_json["commands"].is_array() ){
+                throw std::runtime_error("WorkflowRunStep commands must be an array");
+            }
+
+            const json& commands_json = this->workflow_run_step_json["commands"];
+
+            for( const json& command : commands_json ){
+                if( command.is_object() ){
+                    commands->push_back( std::make_shared<WorkflowRunStepCommand>( *this, command ) );
+                }else{
+                    throw std::runtime_error("WorkflowRunStep commands must be an array of objects");
+                }                
+            }
+
+        }
+
+        return commands;
+
+    }
+
 }
 }

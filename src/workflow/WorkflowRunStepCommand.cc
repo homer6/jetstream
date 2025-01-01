@@ -35,37 +35,49 @@ using std::string;
 #include "Common.h"
 using jetstream::args_holder;
 
+#include "workflow/WorkflowRunStep.h"
+
 
 namespace jetstream{
 namespace workflow{
 
 
 
-    WorkflowRunStepCommand::WorkflowRunStepCommand( shared_ptr<WorkflowRunStep> workflow_run_step )
-        :workflow_run_step( workflow_run_step )
+    WorkflowRunStepCommand::WorkflowRunStepCommand( const WorkflowRunStep& workflow_run_step, const json& workflow_run_step_command_json )
+        :workflow_run_step(workflow_run_step), workflow_run_step_command_json(workflow_run_step_command_json)
     {
+
     }
 
 
 
     string WorkflowRunStepCommand::getFullCommand() const{
 
-        if( !this->workflow_run_step ){
-            throw std::runtime_error("WorkflowRunStepCommand has no WorkflowRunStep");
+        // Extract command and parameters
+
+        if( !workflow_run_step_command_json.contains("command") ){
+            throw std::runtime_error("WorkflowRunStepCommand JSON must contain a 'command' key");
         }
 
-        const json& workflow_run_step_json = this->workflow_run_step->workflow_run_step_json;
+        if( !workflow_run_step_command_json["command"].is_string() ){
+            throw std::runtime_error("WorkflowRunStepCommand 'command' key must be a string");
+        }
 
-        // Extract command and parameters
-        std::string command = workflow_run_step_json["command"];
+        std::string command = workflow_run_step_command_json["command"].get<std::string>();
         std::string full_command = command;
 
         // If there are parameters, append them to the command
-        if(workflow_run_step_json.contains("parameters")){
-            auto parameters = workflow_run_step_json["parameters"];
-            for(auto it = parameters.begin(); it != parameters.end(); ++it){
+        if( workflow_run_step_command_json.contains("parameters") ){
+
+            if( !workflow_run_step_command_json["parameters"].is_object() ){
+                throw std::runtime_error("WorkflowRunStepCommand 'parameters' key must be an object");
+            }
+
+            auto parameters = workflow_run_step_command_json["parameters"];
+            for( auto it = parameters.begin(); it != parameters.end(); ++it ){
                 full_command += " " + it.key() + " " + it.value().get<std::string>();
             }
+
         }
 
         return full_command;
@@ -78,14 +90,15 @@ namespace workflow{
 
         std::map<string,string> env_vars;
 
-        if( !this->workflow_run_step ){
-            throw std::runtime_error("WorkflowRunStepCommand has no WorkflowRunStep");
-        }
-
-        const json& workflow_run_step_json = this->workflow_run_step->workflow_run_step_json;
+        const json& workflow_run_step_json = this->workflow_run_step.workflow_run_step_json;
 
         // Extract environment variables
         if( workflow_run_step_json.contains("environment") ){
+
+            if( !workflow_run_step_json["environment"].is_object() ){
+                throw std::runtime_error("WorkflowRunStep 'environment' key must be an object");
+            }
+
             auto environment = workflow_run_step_json["environment"];
             for( const auto& [key, value] : environment.items() ){
                 env_vars[key] = value.get<std::string>();
