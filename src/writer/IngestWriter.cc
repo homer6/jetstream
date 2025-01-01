@@ -118,8 +118,8 @@ namespace writer{
 
 
 		// consume from kafka
-            ingest::LogSplitter splitter;
-            ingest::LogSender sender{ this->config, ingest_writer_ptr->exporter };
+            //ingest::LogSplitter splitter;
+            //ingest::LogSender sender{ this->config, ingest_writer_ptr->exporter };
 
             const string user_id = config.getConfigSetting("user_id");
             const string handler_name = config.getConfigSetting("handler_name");
