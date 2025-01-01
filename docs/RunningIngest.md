@@ -59,6 +59,11 @@ Writes from a Kafka topic to an HTTP-based ingestion endpoint.
 | `JETSTREAM_PROM_SECURE`              | Whether the Prometheus PushGateway connection is secure (`true` or `false`).                                | `false`                                                              |
 | `JETSTREAM_POSTGRES_URL`             | Postgres connection string if used by certain custom subcommands or tasks.                                  | `postgresql://username@localhost/dbname?connect_timeout=10&application_name=myapp&ssl=true` |
 | `JETSTREAM_HANDLER_NAME`             | A workflow or handler name, sometimes used to label or track the pipeline.                                  | `na`                                                                 |
+| `JETSTREAM_SECURITY_PROTOCOL`        | Security protocol to use for Kafka connections.                                                             | `SASL_SSL`                                                           |
+| `JETSTREAM_SASL_MECHANISMS`          | SASL mechanisms to use for Kafka connections.                                                               | `SCRAM-SHA-512`                                                      |
+| `JETSTREAM_SASL_USERNAME`            | SASL username for Kafka connections.                                                                        | `scram-user`                                                         |
+| `JETSTREAM_SASL_PASSWORD`            | SASL password for Kafka connections.                                                                        | `super_secret_password`                                              |
+| `JETSTREAM_SSL_CA_LOCATION`          | Path to the SSL CA certificate for Kafka connections.                                                       | `/path/to/kafka-certificate.crt`                                     |
 
 > **Important**: Many of these environment variables are used by Jetstream’s other commands (e.g., `elasticsearch`, `loggly`, `s3`) but are listed here for completeness. The `ingest` command typically uses those related to Kafka input and HTTP output only.
 
@@ -156,6 +161,11 @@ Every command-line option has a corresponding environment variable. If you **omi
 | **`JETSTREAM_PROM_SECURE`**        | `false`                                                               | Whether the Prometheus PushGateway connection is secure (`true`/`false`).                                       |
 | **`JETSTREAM_POSTGRES_URL`**       | `postgresql://username@localhost/dbname?connect_timeout=10&application_name=myapp&ssl=true` | If used by certain subcommands for Postgres-based features.                                     |
 | **`JETSTREAM_HANDLER_NAME`**       | `na`                                                                  | If a custom handler/workflow name is needed.                                                                    |
+| **`JETSTREAM_SECURITY_PROTOCOL`**  | `SASL_SSL`                                                            | Security protocol to use for Kafka connections.                                                                |
+| **`JETSTREAM_SASL_MECHANISMS`**    | `SCRAM-SHA-512`                                                       | SASL mechanisms to use for Kafka connections.                                                                  |
+| **`JETSTREAM_SASL_USERNAME`**      | `scram-user`                                                          | SASL username for Kafka connections.                                                                           |
+| **`JETSTREAM_SASL_PASSWORD`**      | `super_secret_password`                                               | SASL password for Kafka connections.                                                                           |
+| **`JETSTREAM_SSL_CA_LOCATION`**    | `/path/to/kafka-certificate.crt`                                       | Path to the SSL CA certificate for Kafka connections.                                                          |
 
 ---
 
@@ -174,7 +184,12 @@ jetstream ingest \
   --destination-index /api/v1/ingest \
   --destination-secure true \
   --destination-auth-url https://auth.mydomain.com/api/user/login \
-  --token LONG_TOKEN_HERE
+  --token LONG_TOKEN_HERE \
+  --security-protocol SASL_SSL \
+  --sasl-mechanisms SCRAM-SHA-512 \
+  --sasl-username scram-user \
+  --sasl-password super_secret_password \
+  --ssl-ca-location /path/to/kafka-certificate.crt
 ```
 
 This will:
@@ -186,6 +201,10 @@ This will:
 6. Send ingestion requests to `https://ingest.mydomain.com/api/v1/ingest`.
 7. Use `admin` / `s3cr3t` basic authentication if required by the server.
 8. Use an additional auth token from the `--token` argument or environment variable.
+9. Use `SASL_SSL` as the security protocol for Kafka connections.
+10. Use `SCRAM-SHA-512` as the SASL mechanism for Kafka connections.
+11. Authenticate Kafka connections with `scram-user` / `super_secret_password`.
+12. Use the SSL CA certificate located at `/path/to/kafka-certificate.crt`.
 
 ---
 

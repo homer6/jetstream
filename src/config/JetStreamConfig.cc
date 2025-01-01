@@ -44,6 +44,11 @@ namespace config {
 
         this->setConfigSetting( "handler_name", this->jetstream->getDefaultHandlerName() );
 
+        this->setConfigSetting("security_protocol", this->jetstream->getDefaultSecurityProtocol());
+        this->setConfigSetting("sasl_mechanisms", this->jetstream->getDefaultSaslMechanisms());
+        this->setConfigSetting("sasl_username", this->jetstream->getDefaultSaslUsername());
+        this->setConfigSetting("sasl_password", this->jetstream->getDefaultSaslPassword());
+        this->setConfigSetting("ssl_ca_location", this->jetstream->getDefaultSslCaLocation());
 
     }
 

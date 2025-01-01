@@ -67,6 +67,11 @@ namespace jetstream{
 
 			string getDefaultHandlerName();
 
+            string getDefaultSecurityProtocol();
+            string getDefaultSaslMechanisms();
+            string getDefaultSaslUsername();
+            string getDefaultSaslPassword();
+            string getDefaultSslCaLocation();
 
 	     	bool keep_running = true;
 

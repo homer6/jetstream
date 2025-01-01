@@ -720,6 +720,46 @@ namespace jetstream{
 
 	}
 
+    string JetStream::getDefaultSecurityProtocol() {
+        string default_value = this->getEnvironmentVariable("JETSTREAM_SECURITY_PROTOCOL");
+        if( default_value.size() > 0 ){
+            return default_value;
+        }
+        return "SASL_SSL";
+    }
+
+    string JetStream::getDefaultSaslMechanisms() {
+        string default_value = this->getEnvironmentVariable("JETSTREAM_SASL_MECHANISMS");
+        if( default_value.size() > 0 ){
+            return default_value;
+        }
+        return "SCRAM-SHA-512";
+    }
+
+    string JetStream::getDefaultSaslUsername() {
+        string default_value = this->getEnvironmentVariable("JETSTREAM_SASL_USERNAME");
+        if( default_value.size() > 0 ){
+            return default_value;
+        }
+        return "scram-user";
+    }
+
+    string JetStream::getDefaultSaslPassword() {
+        string default_value = this->getEnvironmentVariable("JETSTREAM_SASL_PASSWORD");
+        if( default_value.size() > 0 ){
+            return default_value;
+        }
+        return "super_secret_password";
+    }
+
+    string JetStream::getDefaultSslCaLocation() {
+        string default_value = this->getEnvironmentVariable("JETSTREAM_SSL_CA_LOCATION");
+        if( default_value.size() > 0 ){
+            return default_value;
+        }
+        return "/path/to/kafka-certificate.crt";
+    }
+
 
 	void JetStream::loadEnvironmentVariables(){
 

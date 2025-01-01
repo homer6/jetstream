@@ -86,7 +86,12 @@ namespace writer{
 				    { "group.id", config.getConfigSetting("consumer_group") },
 				    // Disable auto commit
 				    { "enable.auto.commit", false },
-				    { "auto.offset.reset", "latest" } //earliest or latest
+				    { "auto.offset.reset", "latest" }, //earliest or latest
+                    { "security.protocol", config.getConfigSetting("security_protocol") },
+                    { "sasl.mechanisms", config.getConfigSetting("sasl_mechanisms") },
+                    { "sasl.username", config.getConfigSetting("sasl_username") },
+                    { "sasl.password", config.getConfigSetting("sasl_password") },
+                    { "ssl.ca.location", config.getConfigSetting("ssl_ca_location") }
 				};
 
 
@@ -191,7 +196,12 @@ namespace writer{
                                                 
                                                 // Create the config
                                                 cppkafka::Configuration kafka_producer_config = {
-                                                    { "metadata.broker.list", config.getConfigSetting("brokers") }
+                                                    { "metadata.broker.list", config.getConfigSetting("brokers") },
+                                                    { "security.protocol", config.getConfigSetting("security_protocol") },
+                                                    { "sasl.mechanisms", config.getConfigSetting("sasl_mechanisms") },
+                                                    { "sasl.username", config.getConfigSetting("sasl_username") },
+                                                    { "sasl.password", config.getConfigSetting("sasl_password") },
+                                                    { "ssl.ca.location", config.getConfigSetting("ssl_ca_location") }
                                                 };
 
                                                 // Create the producer
