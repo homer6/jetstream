@@ -68,6 +68,8 @@ Writes from a Kafka topic to an HTTP-based ingestion endpoint.
 
 > **Important**: Many of these environment variables are used by Jetstream’s other commands (e.g., `elasticsearch`, `loggly`, `s3`) but are listed here for completeness. The `ingest` command typically uses those related to Kafka input and HTTP output only.
 
+> **Note**: Ensure the handler name matches the step name and its status is "starting" or the step will be skipped.
+
 ---
 
 ## Basic Examples
@@ -168,6 +170,10 @@ Every command-line option has a corresponding environment variable. If you **omi
 | **`JETSTREAM_SASL_PASSWORD`**      | `super_secret_password`                                               | SASL password for Kafka connections.                                                                           |
 | **`JETSTREAM_SSL_CA_LOCATION`**    | `/path/to/kafka-certificate.crt`                                       | Path to the SSL CA certificate for Kafka connections.                                                          |
 | **`JETSTREAM_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM`** | `https` | SSL endpoint identification algorithm for Kafka connections. |
+
+> **Important**: Many of these environment variables are used by Jetstream’s other commands (e.g., `elasticsearch`, `loggly`, `s3`) but are listed here for completeness. The `ingest` command typically uses those related to Kafka input and HTTP output only.
+
+> **Note**: Ensure the handler name matches the step name and its status is "starting" or the step will be skipped.
 
 ---
 
