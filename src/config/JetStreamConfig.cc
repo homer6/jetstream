@@ -49,6 +49,7 @@ namespace config {
         this->setConfigSetting("sasl_username", this->jetstream->getDefaultSaslUsername());
         this->setConfigSetting("sasl_password", this->jetstream->getDefaultSaslPassword());
         this->setConfigSetting("ssl_ca_location", this->jetstream->getDefaultSslCaLocation());
+        this->setConfigSetting("ssl_endpoint_identification_algorithm", this->jetstream->getDefaultSslEndpointIdentificationAlgorithm());
 
     }
 

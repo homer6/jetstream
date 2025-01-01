@@ -72,6 +72,7 @@ namespace jetstream{
             string getDefaultSaslUsername();
             string getDefaultSaslPassword();
             string getDefaultSslCaLocation();
+			string getDefaultSslEndpointIdentificationAlgorithm();
 
 	     	bool keep_running = true;
 

@@ -760,6 +760,14 @@ namespace jetstream{
         return "/path/to/kafka-certificate.crt";
     }
 
+    string JetStream::getDefaultSslEndpointIdentificationAlgorithm() {
+        string default_value = this->getEnvironmentVariable("JETSTREAM_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM");
+        if( default_value.size() > 0 ){
+            return default_value;
+        }
+        return "https";
+    }
+
 
 	void JetStream::loadEnvironmentVariables(){
 

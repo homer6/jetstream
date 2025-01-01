@@ -64,6 +64,7 @@ Writes from a Kafka topic to an HTTP-based ingestion endpoint.
 | `JETSTREAM_SASL_USERNAME`            | SASL username for Kafka connections.                                                                        | `scram-user`                                                         |
 | `JETSTREAM_SASL_PASSWORD`            | SASL password for Kafka connections.                                                                        | `super_secret_password`                                              |
 | `JETSTREAM_SSL_CA_LOCATION`          | Path to the SSL CA certificate for Kafka connections.                                                       | `/path/to/kafka-certificate.crt`                                     |
+| `JETSTREAM_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM` | `https` | SSL endpoint identification algorithm for Kafka connections. |
 
 > **Important**: Many of these environment variables are used by Jetstream’s other commands (e.g., `elasticsearch`, `loggly`, `s3`) but are listed here for completeness. The `ingest` command typically uses those related to Kafka input and HTTP output only.
 
@@ -166,6 +167,7 @@ Every command-line option has a corresponding environment variable. If you **omi
 | **`JETSTREAM_SASL_USERNAME`**      | `scram-user`                                                          | SASL username for Kafka connections.                                                                           |
 | **`JETSTREAM_SASL_PASSWORD`**      | `super_secret_password`                                               | SASL password for Kafka connections.                                                                           |
 | **`JETSTREAM_SSL_CA_LOCATION`**    | `/path/to/kafka-certificate.crt`                                       | Path to the SSL CA certificate for Kafka connections.                                                          |
+| **`JETSTREAM_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM`** | `https` | SSL endpoint identification algorithm for Kafka connections. |
 
 ---
 
@@ -189,7 +191,8 @@ jetstream ingest \
   --sasl-mechanisms SCRAM-SHA-512 \
   --sasl-username scram-user \
   --sasl-password super_secret_password \
-  --ssl-ca-location /path/to/kafka-certificate.crt
+  --ssl-ca-location /path/to/kafka-certificate.crt \
+  --ssl-endpoint-identification-algorithm none
 ```
 
 This will:
@@ -205,6 +208,7 @@ This will:
 10. Use `SCRAM-SHA-512` as the SASL mechanism for Kafka connections.
 11. Authenticate Kafka connections with `scram-user` / `super_secret_password`.
 12. Use the SSL CA certificate located at `/path/to/kafka-certificate.crt`.
+13. Set the SSL endpoint identification algorithm to `none`.
 
 ---
 

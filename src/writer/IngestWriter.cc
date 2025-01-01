@@ -91,7 +91,8 @@ namespace writer{
                     { "sasl.mechanisms", config.getConfigSetting("sasl_mechanisms") },
                     { "sasl.username", config.getConfigSetting("sasl_username") },
                     { "sasl.password", config.getConfigSetting("sasl_password") },
-                    { "ssl.ca.location", config.getConfigSetting("ssl_ca_location") }
+                    { "ssl.ca.location", config.getConfigSetting("ssl_ca_location") },
+                    { "ssl.endpoint.identification.algorithm", config.getConfigSetting("ssl_endpoint_identification_algorithm") }
 				};
 
 
@@ -201,7 +202,8 @@ namespace writer{
                                                     { "sasl.mechanisms", config.getConfigSetting("sasl_mechanisms") },
                                                     { "sasl.username", config.getConfigSetting("sasl_username") },
                                                     { "sasl.password", config.getConfigSetting("sasl_password") },
-                                                    { "ssl.ca.location", config.getConfigSetting("ssl_ca_location") }
+                                                    { "ssl.ca.location", config.getConfigSetting("ssl_ca_location") },
+                                                    { "ssl.endpoint.identification.algorithm", config.getConfigSetting("ssl_endpoint_identification_algorithm") }
                                                 };
 
                                                 // Create the producer
