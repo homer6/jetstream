@@ -119,6 +119,14 @@ namespace workflow{
                 return;
             }
 
+            if( step_status != "starting" ){
+                cout << "Skipping step: " << step_name << " with status: " << step_status << endl;                
+            }
+
+            if( step_name != this->handler_name ){
+                cout << "Skipping step: " << step_name << " with handler name mismatch. Step name: " << step_name << ", handler name: " << this->handler_name << endl;
+            }
+
             if( step_status == "starting" && step_name == this->handler_name ){
                 
                 // Create a WorkflowRunStep object
