@@ -2,11 +2,19 @@
 
 This guide assumes:
 
-- You have a C++17-compatible compiler (e.g., GCC 7+ or Clang 7+).
-- You have `cmake`, `autoconf`, `automake`, `libtool`, and `pkg-config` installed.
+- You have Ubuntu 24
 - You have `sudo` privileges to install to system directories (e.g., `/usr/local`).
 
 No prebuilt packages are needed; all dependencies are built from the submodules included in this repository.
+
+
+## Step 0: Install Build Tools
+
+```sh
+sudo apt update
+sudo apt install -y build-essential cmake autoconf automake libtool pkg-config git libssl-dev zlib1g-dev libpq-dev libfmt-dev
+```
+
 
 ## Step 1: Clone and Update Submodules
 
@@ -84,9 +92,11 @@ cd ../../
 ### cppkafka
 
 ```sh
+sudo ldconfig
 cd dependencies/cppkafka
 mkdir build && cd build
-cmake ..
+cmake .. -DCPPKAFKA_BUILD_TESTS=ON \
+         -DCMAKE_CXX_FLAGS="-DCATCH_CONFIG_NO_POSIX_SIGNALS"
 make -j$(nproc)
 sudo make install
 cd ../../../
@@ -210,6 +220,7 @@ cmake ..
 make -j$(nproc)
 sudo ldconfig
 sudo make install
+cd ..
 ```
 
 Jetstream and its dependencies should now be installed into `/usr/local`. You can run and link against Jetstream just like any other system-installed library.
