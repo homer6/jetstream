@@ -95,14 +95,25 @@ else()
     message(FATAL_ERROR "cppkafka not found")
 endif()
 
-# Find libpqxx
-find_path(PQXX_INCLUDE_DIRS pqxx/pqxx)
-find_library(PQXX_LIBRARIES pqxx)
-if(PQXX_INCLUDE_DIRS AND PQXX_LIBRARIES)
-    message(STATUS "Found libpqxx")
+# Improved libpqxx detection
+find_package(PkgConfig QUIET)
+if(PKG_CONFIG_FOUND)
+  pkg_check_modules(PQXX REQUIRED libpqxx)
+  if(PQXX_FOUND)
+    message(STATUS "Found libpqxx via pkg-config: ${PQXX_VERSION}")
     include_directories(${PQXX_INCLUDE_DIRS})
+    link_directories(${PQXX_LIBRARY_DIRS})
+  endif()
 else()
+  # Fallback method
+  find_path(PQXX_INCLUDE_DIRS pqxx/pqxx)
+  find_library(PQXX_LIBRARIES pqxx)
+  if(PQXX_INCLUDE_DIRS AND PQXX_LIBRARIES)
+    message(STATUS "Found libpqxx via find_library")
+    include_directories(${PQXX_INCLUDE_DIRS})
+  else()
     message(FATAL_ERROR "libpqxx not found")
+  endif()
 endif()
 
 # Find libpq
@@ -124,15 +135,8 @@ else()
     message(FATAL_ERROR "libpq not found")
 endif()
 
-
 # find AWS SDK
 find_package(AWSSDK REQUIRED COMPONENTS s3)
-
-#add_executable(myapp main.cpp)
-#target_link_libraries(myapp ${AWSSDK_LIBRARIES})
-#target_include_directories(myapp PUBLIC ${AWSSDK_INCLUDE_DIRS})
-
-
 
 # Additional include directories
 include_directories(
@@ -205,7 +209,6 @@ set(JETSTREAM_SOURCES
     src/data/GizmoDataAugmenter.cc
     src/pugixml.cpp
     src/jetstream_main.cc
-
 )
 
 # Libraries
@@ -227,9 +230,13 @@ if(WIN32)
 else()
     # POSIX platforms (Linux, macOS)
     find_package(Threads REQUIRED)
-    list(APPEND JETSTREAM_LIBS Threads::Threads dl z)
+    list(APPEND JETSTREAM_LIBS Threads::Threads ${CMAKE_DL_LIBS} z)
     set(PLATFORM_COMPILE_OPTIONS)
 endif()
+
+# Add debugging output for library paths
+message(STATUS "PQXX_LIBRARIES: ${PQXX_LIBRARIES}")
+message(STATUS "PQXX_LIBRARY_DIRS: ${PQXX_LIBRARY_DIRS}")
 
 # Create the executable
 add_executable(jetstream ${JETSTREAM_SOURCES})
@@ -240,13 +247,23 @@ target_link_libraries(jetstream PRIVATE ${JETSTREAM_LIBS})
 # Set compile options
 target_compile_options(jetstream PRIVATE ${JETSTREAM_COMPILE_OPTIONS} ${PLATFORM_COMPILE_OPTIONS})
 
-# Set rpath if necessary
-if(NOT WIN32)
-    set_target_properties(jetstream PROPERTIES
-        INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib"
-        BUILD_WITH_INSTALL_RPATH TRUE
-    )
-endif()
+# # Set rpath for macOS
+# if(APPLE)
+#   set_target_properties(jetstream PROPERTIES
+#     INSTALL_RPATH "@executable_path/../lib;@loader_path/../lib"
+#     BUILD_WITH_INSTALL_RPATH TRUE
+#     MACOSX_RPATH TRUE
+#   )
+# # Set rpath for other UNIX platforms
+# elseif(UNIX AND NOT APPLE)
+#   set_target_properties(jetstream PROPERTIES
+#     INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib"
+#     BUILD_WITH_INSTALL_RPATH TRUE
+#   )
+# endif()
 
 # Add an install rule to place the jetstream binary in the standard bin directory
 install(TARGETS jetstream RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+# Add a compile definition to handle libpqxx version differences
+# add_compile_definitions(LIBPQXX_VERSION_7_10)
