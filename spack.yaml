@@ -1,0 +1,12 @@
+spack:
+  specs:
+  - cppkafka
+  - boost@1.65.0:+system+filesystem
+  - libpqxx
+  - aws-sdk-cpp
+  - cpp-httplib
+  - openssl
+  - zlib
+
+  view: true
+   
